@@ -15,6 +15,7 @@
     "upgrade:dry": "npx @strapi/upgrade latest --dry"
   },
   "dependencies": {
+    "@strapi/plugin-users-permissions": "^5.23.6",
     "@strapi/provider-upload-local": "^5.23.6",
     "@strapi/strapi": "5.23.6",
     "better-sqlite3": "11.3.0",
