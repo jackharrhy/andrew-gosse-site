@@ -2,8 +2,8 @@
   "collectionName": "components_shared_seos",
   "info": {
     "name": "Seo",
-    "icon": "allergies",
-    "displayName": "Seo",
+    "icon": "question",
+    "displayName": "SEO",
     "description": ""
   },
   "options": {},
@@ -20,7 +20,9 @@
       "type": "media",
       "multiple": false,
       "required": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
     }
   }
 }

@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_shared_sidebar_items",
+  "info": {
+    "displayName": "Sidebar Item",
+    "icon": "archive"
+  },
+  "options": {},
+  "attributes": {
+    "text": {
+      "type": "string"
+    },
+    "page": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::page.page"
+    }
+  },
+  "config": {}
+}

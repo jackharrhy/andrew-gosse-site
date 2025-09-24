@@ -1,20 +1,13 @@
 ---
+import Layout from "../layouts/Layout.astro";
 import { fetchHomepage } from "../lib/fetch-strapi";
 
 const homepage = await fetchHomepage();
-
-console.log(homepage);
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="description" content={homepage.seo.metaDescription} />
-    <title>{homepage.seo.metaTitle}</title>
-  </head>
-  <body>
-    <h1>{homepage.seo.metaTitle}</h1>
-  </body>
-</html>
+<Layout
+  title={homepage.seo.metaTitle}
+  description={homepage.seo.metaDescription}
+>
+  <h1>{homepage.seo.metaTitle}</h1>
+</Layout>

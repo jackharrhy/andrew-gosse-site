@@ -1,0 +1,19 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { risoColors } from "../lib/riso-colors";
+---
+
+<Layout title="Riso Colors">
+  <div class="flex flex-wrap gap-2">
+    {
+      risoColors.map((color) => (
+        <div
+          class="text-white text-shadow-md p-1.5 px-2 h-30 w-30 rounded-full items-center justify-center flex text-center border border-black/10"
+          style={`background-color: ${color.color};`}
+        >
+          {color.name}
+        </div>
+      ))
+    }
+  </div>
+</Layout>

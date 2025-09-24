@@ -27,8 +27,8 @@ export interface SharedSeo extends Struct.ComponentSchema {
   collectionName: 'components_shared_seos';
   info: {
     description: '';
-    displayName: 'Seo';
-    icon: 'allergies';
+    displayName: 'SEO';
+    icon: 'question';
     name: 'Seo';
   };
   attributes: {
@@ -38,12 +38,45 @@ export interface SharedSeo extends Struct.ComponentSchema {
   };
 }
 
+export interface SharedSidebarCategory extends Struct.ComponentSchema {
+  collectionName: 'components_shared_sidebar_categories';
+  info: {
+    displayName: 'Sidebar Category';
+    icon: 'grid';
+  };
+  attributes: {
+    categoryTitle: Schema.Attribute.String;
+    items: Schema.Attribute.Component<'shared.sidebar-item', true> &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
+  };
+}
+
+export interface SharedSidebarItem extends Struct.ComponentSchema {
+  collectionName: 'components_shared_sidebar_items';
+  info: {
+    displayName: 'Sidebar Item';
+    icon: 'archive';
+  };
+  attributes: {
+    page: Schema.Attribute.Relation<'oneToOne', 'api::page.page'>;
+    text: Schema.Attribute.String;
+  };
+}
+
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
       'shared.media': SharedMedia;
       'shared.rich-text': SharedRichText;
       'shared.seo': SharedSeo;
+      'shared.sidebar-category': SharedSidebarCategory;
+      'shared.sidebar-item': SharedSidebarItem;
     }
   }
 }
