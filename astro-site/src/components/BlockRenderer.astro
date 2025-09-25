@@ -1,0 +1,34 @@
+---
+import { marked } from "marked";
+
+import type {
+  ComponentSharedMedia,
+  ComponentSharedRichText,
+} from "../graphql/graphql";
+
+export type Block = ComponentSharedMedia | ComponentSharedRichText;
+
+interface Props {
+  blocks: Block[];
+}
+
+const { blocks } = Astro.props;
+---
+
+<article class="prose lg:prose-xl w-full flex flex-col gap-4">
+  {
+    blocks.map((block) => (
+      <div>
+        {block.__typename === "ComponentSharedMedia" && (
+          <img
+            src={`${import.meta.env.STRAPI_URL}${block.file!.url}`}
+            alt={block.file!.alternativeText}
+          />
+        )}
+        {block.__typename === "ComponentSharedRichText" && (
+          <div set:html={marked.parse(block.body!)} />
+        )}
+      </div>
+    ))
+  }
+</article>

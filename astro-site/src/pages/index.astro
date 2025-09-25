@@ -1,4 +1,5 @@
 ---
+import BlockRenderer, { type Block } from "../components/BlockRenderer.astro";
 import Layout from "../layouts/Layout.astro";
 import { fetchHomepage } from "../lib/fetch-strapi";
 
@@ -6,8 +7,12 @@ const homepage = await fetchHomepage();
 ---
 
 <Layout
-  title={homepage.seo.metaTitle}
-  description={homepage.seo.metaDescription}
+  title={homepage!.seo!.metaTitle}
+  description={homepage!.seo!.metaDescription}
 >
-  <h1>{homepage.seo.metaTitle}</h1>
+  <BlockRenderer
+    blocks={homepage!.blocks!.map((block) => {
+      return block as Block;
+    })}
+  />
 </Layout>

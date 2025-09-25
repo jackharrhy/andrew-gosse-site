@@ -69,6 +69,29 @@ export interface SharedSidebarItem extends Struct.ComponentSchema {
   };
 }
 
+export interface SharedSidebarLink extends Struct.ComponentSchema {
+  collectionName: 'components_shared_sidebar_links';
+  info: {
+    displayName: 'Sidebar Link';
+    icon: 'link';
+  };
+  attributes: {
+    service: Schema.Attribute.Enumeration<
+      [
+        'Bandcamp',
+        'YouTube',
+        'Instagram',
+        'LinkedIn',
+        'GitHub',
+        'Itch.io',
+        'IMDB',
+      ]
+    > &
+      Schema.Attribute.Required;
+    url: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
@@ -77,6 +100,7 @@ declare module '@strapi/strapi' {
       'shared.seo': SharedSeo;
       'shared.sidebar-category': SharedSidebarCategory;
       'shared.sidebar-item': SharedSidebarItem;
+      'shared.sidebar-link': SharedSidebarLink;
     }
   }
 }

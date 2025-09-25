@@ -15,6 +15,11 @@
       "type": "component",
       "component": "shared.sidebar-category",
       "repeatable": true
+    },
+    "links": {
+      "type": "component",
+      "component": "shared.sidebar-link",
+      "repeatable": true
     }
   }
 }

@@ -1,0 +1,28 @@
+{
+  "collectionName": "components_shared_sidebar_links",
+  "info": {
+    "displayName": "Sidebar Link",
+    "icon": "link"
+  },
+  "options": {},
+  "attributes": {
+    "url": {
+      "type": "string",
+      "required": true
+    },
+    "service": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "Bandcamp",
+        "YouTube",
+        "Instagram",
+        "LinkedIn",
+        "GitHub",
+        "Itch.io",
+        "IMDB"
+      ]
+    }
+  },
+  "config": {}
+}
