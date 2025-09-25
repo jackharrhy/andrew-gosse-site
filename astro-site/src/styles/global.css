@@ -1,2 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+@theme {
+  --color-link: oklch(0.4363 0.0743 278.01);
+}

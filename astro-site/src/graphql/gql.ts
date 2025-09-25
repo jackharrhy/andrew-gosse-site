@@ -16,11 +16,11 @@ import * as types from './graphql';
  */
 type Documents = {
     "\n  query Homepage {\n    homepage {\n      seo {\n        metaTitle\n        metaDescription\n        shareImage {\n          url\n        }\n      }\n      blocks {\n        ... on ComponentSharedRichText {\n          __typename\n          body\n        }\n        ... on ComponentSharedMedia {\n          __typename\n          file {\n            url\n            alternativeText\n          }\n        }\n      }\n    }\n  }\n": typeof types.HomepageDocument,
-    "\n  query Sidebar {\n    sidebar {\n      categories {\n        categoryTitle\n        items {\n          text\n          page {\n            slug\n          }\n        }\n      }\n      links {\n        service\n        url\n      }\n    }\n  }\n": typeof types.SidebarDocument,
+    "\n  query Sidebar {\n    sidebar {\n      topImage {\n        url\n        alternativeText\n      }\n      categories {\n        categoryTitle\n        items {\n          text\n          page {\n            slug\n          }\n        }\n      }\n      links {\n        service\n        url\n      }\n    }\n  }\n": typeof types.SidebarDocument,
 };
 const documents: Documents = {
     "\n  query Homepage {\n    homepage {\n      seo {\n        metaTitle\n        metaDescription\n        shareImage {\n          url\n        }\n      }\n      blocks {\n        ... on ComponentSharedRichText {\n          __typename\n          body\n        }\n        ... on ComponentSharedMedia {\n          __typename\n          file {\n            url\n            alternativeText\n          }\n        }\n      }\n    }\n  }\n": types.HomepageDocument,
-    "\n  query Sidebar {\n    sidebar {\n      categories {\n        categoryTitle\n        items {\n          text\n          page {\n            slug\n          }\n        }\n      }\n      links {\n        service\n        url\n      }\n    }\n  }\n": types.SidebarDocument,
+    "\n  query Sidebar {\n    sidebar {\n      topImage {\n        url\n        alternativeText\n      }\n      categories {\n        categoryTitle\n        items {\n          text\n          page {\n            slug\n          }\n        }\n      }\n      links {\n        service\n        url\n      }\n    }\n  }\n": types.SidebarDocument,
 };
 
 /**
@@ -30,7 +30,7 @@ export function graphql(source: "\n  query Homepage {\n    homepage {\n      seo
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Sidebar {\n    sidebar {\n      categories {\n        categoryTitle\n        items {\n          text\n          page {\n            slug\n          }\n        }\n      }\n      links {\n        service\n        url\n      }\n    }\n  }\n"): typeof import('./graphql').SidebarDocument;
+export function graphql(source: "\n  query Sidebar {\n    sidebar {\n      topImage {\n        url\n        alternativeText\n      }\n      categories {\n        categoryTitle\n        items {\n          text\n          page {\n            slug\n          }\n        }\n      }\n      links {\n        service\n        url\n      }\n    }\n  }\n"): typeof import('./graphql').SidebarDocument;
 
 
 export function graphql(source: string) {

@@ -887,6 +887,7 @@ export type Sidebar = {
   documentId: Scalars["ID"]["output"];
   links?: Maybe<Array<Maybe<ComponentSharedSidebarLink>>>;
   publishedAt?: Maybe<Scalars["DateTime"]["output"]>;
+  topImage?: Maybe<UploadFile>;
   updatedAt?: Maybe<Scalars["DateTime"]["output"]>;
 };
 
@@ -908,6 +909,7 @@ export type SidebarInput = {
   >;
   links?: InputMaybe<Array<InputMaybe<ComponentSharedSidebarLinkInput>>>;
   publishedAt?: InputMaybe<Scalars["DateTime"]["input"]>;
+  topImage?: InputMaybe<Scalars["ID"]["input"]>;
 };
 
 export type StringFilterInput = {
@@ -1232,6 +1234,11 @@ export type SidebarQuery = {
   __typename?: "Query";
   sidebar?: {
     __typename?: "Sidebar";
+    topImage?: {
+      __typename?: "UploadFile";
+      url: string;
+      alternativeText?: string | null;
+    } | null;
     categories?: Array<{
       __typename?: "ComponentSharedSidebarCategory";
       categoryTitle?: string | null;
@@ -1299,6 +1306,10 @@ export const HomepageDocument = new TypedDocumentString(`
 export const SidebarDocument = new TypedDocumentString(`
     query Sidebar {
   sidebar {
+    topImage {
+      url
+      alternativeText
+    }
     categories {
       categoryTitle
       items {

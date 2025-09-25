@@ -36,6 +36,10 @@ export async function fetchHomepage() {
 export const SidebarQuery = graphql(`
   query Sidebar {
     sidebar {
+      topImage {
+        url
+        alternativeText
+      }
       categories {
         categoryTitle
         items {

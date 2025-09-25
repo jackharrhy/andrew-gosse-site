@@ -4,7 +4,11 @@ import { fetchSidebar } from "../lib/fetch-strapi";
 const sidebar = await fetchSidebar();
 ---
 
-<nav class="flex flex-col gap-4">
+<nav class="flex flex-col gap-4 w-[12rem]">
+  <img
+    src={`${import.meta.env.STRAPI_URL}${sidebar.topImage!.url}`}
+    alt={sidebar.topImage!.alternativeText}
+  />
   <div class="flex flex-col gap-3">
     {
       sidebar.categories!.map((category) => (
@@ -13,7 +17,12 @@ const sidebar = await fetchSidebar();
           <ul class="flex flex-col gap-2">
             {category!.items.map((item) => (
               <li class="list-disc">
-                <a href={`/${item!.page!.slug}`}>{item!.text}</a>
+                <a
+                  href={`/${item!.page!.slug}`}
+                  class="hover:text-link hover:underline"
+                >
+                  {item!.text}
+                </a>
               </li>
             ))}
           </ul>
@@ -24,7 +33,12 @@ const sidebar = await fetchSidebar();
   <div class="flex flex-col gap-2">
     {
       sidebar.links!.map((link) => (
-        <a href={link!.url} target="_blank" rel="noopener noreferrer">
+        <a
+          href={link!.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:text-link hover:underline"
+        >
           {link!.service}
         </a>
       ))
