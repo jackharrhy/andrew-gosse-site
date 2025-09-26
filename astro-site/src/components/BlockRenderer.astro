@@ -5,6 +5,7 @@ import type {
   ComponentSharedMedia,
   ComponentSharedRichText,
 } from "../graphql/graphql";
+import { externalStrapiUrl } from "../consts";
 
 export type Block = ComponentSharedMedia | ComponentSharedRichText;
 
@@ -21,7 +22,7 @@ const { blocks } = Astro.props;
       <div>
         {block.__typename === "ComponentSharedMedia" && (
           <img
-            src={`${import.meta.env.STRAPI_URL}${block.file!.url}`}
+            src={`${externalStrapiUrl}${block.file!.url}`}
             alt={block.file!.alternativeText}
           />
         )}

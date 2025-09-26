@@ -1,11 +1,12 @@
 import type { ExecutionResult } from "graphql";
 import type { TypedDocumentString } from "./graphql";
+import { strapiUrl } from "../consts";
 
 export async function execute<TResult, TVariables>(
   query: TypedDocumentString<TResult, TVariables>,
   ...[variables]: TVariables extends Record<string, never> ? [] : [TVariables]
 ) {
-  const url = import.meta.env.STRAPI_URL + "/graphql";
+  const url = `${strapiUrl}/graphql`;
   const response = await fetch(url, {
     method: "POST",
     headers: {
