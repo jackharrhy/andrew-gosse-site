@@ -1,0 +1,21 @@
+---
+import { getEntry, render } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import BlockRenderer, { type Block } from "../components/BlockRenderer.astro";
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  throw new Error("Slug is required");
+}
+
+const page = await getEntry("pages", slug);
+
+if (!page) {
+  throw new Error("Page not found");
+}
+---
+
+<Layout>
+  <BlockRenderer blocks={page.data.blocks as Block[]} />
+</Layout>

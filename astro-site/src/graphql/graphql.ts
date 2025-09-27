@@ -1256,6 +1256,35 @@ export type SidebarQuery = {
   } | null;
 };
 
+export type PagesQueryVariables = Exact<{ [key: string]: never }>;
+
+export type PagesQuery = {
+  __typename?: "Query";
+  pages: Array<{
+    __typename?: "Page";
+    slug: string;
+    seo?: Array<{
+      __typename?: "ComponentSharedSeo";
+      metaTitle: string;
+      metaDescription: string;
+      shareImage?: { __typename?: "UploadFile"; url: string } | null;
+    } | null> | null;
+    blocks?: Array<
+      | {
+          __typename?: "ComponentSharedMedia";
+          file?: {
+            __typename?: "UploadFile";
+            url: string;
+            alternativeText?: string | null;
+          } | null;
+        }
+      | { __typename?: "ComponentSharedRichText"; body?: string | null }
+      | { __typename?: "Error" }
+      | null
+    > | null;
+  } | null>;
+};
+
 export class TypedDocumentString<TResult, TVariables>
   extends String
   implements DocumentTypeDecoration<TResult, TVariables>
@@ -1326,3 +1355,28 @@ export const SidebarDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<SidebarQuery, SidebarQueryVariables>;
+export const PagesDocument = new TypedDocumentString(`
+    query Pages {
+  pages(pagination: {pageSize: 100}) {
+    slug
+    seo {
+      metaTitle
+      metaDescription
+      shareImage {
+        url
+      }
+    }
+    blocks {
+      ... on ComponentSharedRichText {
+        body
+      }
+      ... on ComponentSharedMedia {
+        file {
+          url
+          alternativeText
+        }
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<PagesQuery, PagesQueryVariables>;

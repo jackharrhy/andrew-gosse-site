@@ -1,14 +1,10 @@
-import { defineCollection, z } from "astro:content";
+import { defineCollection } from "astro:content";
+import { strapiPagesLoader } from "./lib/fetch-strapi";
 
 const pages = defineCollection({
-  loader: async () => {
-    return [];
-  },
-  schema: z.object({
-    id: z.number(),
-  }),
+  loader: strapiPagesLoader(),
 });
 
 export const collections = {
-  // pages,
+  pages,
 };
