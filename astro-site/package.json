@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "codegen": "graphql-codegen --config codegen.ts",
+    "ncu": "npm-check-updates"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.4",
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@graphql-codegen/cli": "^6.0.0",
     "@graphql-codegen/schema-ast": "^5.0.0",
-    "@tailwindcss/typography": "^0.5.19"
+    "@tailwindcss/typography": "^0.5.19",
+    "npm-check-updates": "^19.0.0"
   }
 }
