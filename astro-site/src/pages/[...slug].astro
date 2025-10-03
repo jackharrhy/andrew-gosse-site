@@ -5,6 +5,8 @@ import BlockRenderer, { type Block } from "../components/BlockRenderer.astro";
 
 const { slug } = Astro.params;
 
+console.log("fetching page", slug);
+
 if (!slug) {
   throw new Error("Slug is required");
 }

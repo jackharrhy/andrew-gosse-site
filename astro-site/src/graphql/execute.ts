@@ -7,6 +7,9 @@ export async function execute<TResult, TVariables>(
   ...[variables]: TVariables extends Record<string, never> ? [] : [TVariables]
 ) {
   const url = `${strapiUrl}/graphql`;
+
+  console.log("fetching", url, query, variables);
+
   const response = await fetch(url, {
     method: "POST",
     headers: {
