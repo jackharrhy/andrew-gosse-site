@@ -1271,14 +1271,14 @@ export type PagesQuery = {
     } | null> | null;
     blocks?: Array<
       | {
-          __typename?: "ComponentSharedMedia";
+          __typename: "ComponentSharedMedia";
           file?: {
             __typename?: "UploadFile";
             url: string;
             alternativeText?: string | null;
           } | null;
         }
-      | { __typename?: "ComponentSharedRichText"; body?: string | null }
+      | { __typename: "ComponentSharedRichText"; body?: string | null }
       | { __typename?: "Error" }
       | null
     > | null;
@@ -1368,9 +1368,11 @@ export const PagesDocument = new TypedDocumentString(`
     }
     blocks {
       ... on ComponentSharedRichText {
+        __typename
         body
       }
       ... on ComponentSharedMedia {
+        __typename
         file {
           url
           alternativeText

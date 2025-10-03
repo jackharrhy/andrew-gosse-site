@@ -1,4 +1,4 @@
-import type { Loader, LoaderContext } from "astro/loaders";
+import type { LiveLoader, LoaderContext } from "astro/loaders";
 
 import { graphql } from "../graphql";
 import { execute } from "../graphql/execute";
@@ -78,9 +78,11 @@ export const PagesQuery = graphql(`
       }
       blocks {
         ... on ComponentSharedRichText {
+          __typename
           body
         }
         ... on ComponentSharedMedia {
+          __typename
           file {
             url
             alternativeText
@@ -96,43 +98,61 @@ export async function fetchPages() {
   return result.data!.pages!;
 }
 
-export function strapiPagesLoader(): Loader {
+export async function fetchPage(slug: string) {
+  // TODO make this reach out to the api rather than filter all
+  const pages = await fetchPages();
+  const page = pages.find((p) => p.slug === slug);
+  if (!page) {
+    throw new Error(`Page with slug "${slug}" not found`);
+  }
+  return page;
+}
+
+const PageSchema = z.object({
+  slug: z.string(),
+  seo: z.object({
+    metaTitle: z.string(),
+    metaDescription: z.string(),
+    shareImage: z.object({ url: z.string() }),
+  }),
+  blocks: z.array(
+    z.discriminatedUnion("__typename", [
+      z.object({
+        __typename: z.literal("ComponentSharedRichText"),
+        body: z.string(),
+      }),
+      z.object({
+        __typename: z.literal("ComponentSharedMedia"),
+        file: z.object({
+          url: z.string(),
+          alternativeText: z.string(),
+        }),
+      }),
+    ])
+  ),
+});
+
+export function strapiPagesLoader(): LiveLoader {
   return {
     name: "strapi-pages-loader",
-    load: async ({ store }: LoaderContext): Promise<void> => {
+    loadCollection: async ({}) => {
       const pages = await fetchPages();
 
-      for (const page of pages) {
-        console.log(page);
-        store.set({
-          id: page!.slug,
-          data: page!,
-        });
-      }
+      const entries = pages.map((page) => ({
+        id: page!.slug,
+        data: page!,
+      }));
+
+      return {
+        entries,
+      };
     },
-    schema: async () =>
-      z.object({
-        slug: z.string(),
-        seo: z.object({
-          metaTitle: z.string(),
-          metaDescription: z.string(),
-          shareImage: z.object({ url: z.string() }),
-        }),
-        blocks: z.array(
-          z.discriminatedUnion("__typename", [
-            z.object({
-              __typename: z.literal("ComponentSharedRichText"),
-              body: z.string(),
-            }),
-            z.object({
-              __typename: z.literal("ComponentSharedMedia"),
-              file: z.object({
-                url: z.string(),
-                alternativeText: z.string(),
-              }),
-            }),
-          ])
-        ),
-      }),
+    loadEntry: async ({ filter: { id } }) => {
+      const page = await fetchPage(id);
+      return {
+        id,
+        data: page,
+      };
+    },
   };
 }

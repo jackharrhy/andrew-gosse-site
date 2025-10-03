@@ -1,7 +1,7 @@
-import { defineCollection } from "astro:content";
+import { defineLiveCollection } from "astro:content";
 import { strapiPagesLoader } from "./lib/fetch-strapi";
 
-const pages = defineCollection({
+const pages = defineLiveCollection({
   loader: strapiPagesLoader(),
 });
 

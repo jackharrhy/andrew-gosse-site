@@ -1,5 +1,5 @@
 ---
-import { getEntry, render } from "astro:content";
+import { getLiveEntry } from "astro:content";
 import Layout from "../layouts/Layout.astro";
 import BlockRenderer, { type Block } from "../components/BlockRenderer.astro";
 
@@ -9,13 +9,13 @@ if (!slug) {
   throw new Error("Slug is required");
 }
 
-const page = await getEntry("pages", slug);
+const { entry } = await getLiveEntry("pages", slug);
 
-if (!page) {
+if (!entry) {
   throw new Error("Page not found");
 }
 ---
 
 <Layout>
-  <BlockRenderer blocks={page.data.blocks as Block[]} />
+  <BlockRenderer blocks={entry.data.blocks as Block[]} />
 </Layout>
