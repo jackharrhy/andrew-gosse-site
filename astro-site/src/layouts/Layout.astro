@@ -15,12 +15,14 @@ const { title, description, seoImageUrl } = Astro.props;
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.png" />
     <meta name="viewport" content="width=device-width" />
     {description && <meta name="description" content={description} />}
     <link rel="preconnect" href="https://rsms.me/" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
-    <title>{title || "Andrew Gosse Composer"}</title>
+    <title>
+      {`${title} | Andrew Gosse Composer` || "Andrew Gosse Composer"}
+    </title>
     {
       seoImageUrl && (
         <>
