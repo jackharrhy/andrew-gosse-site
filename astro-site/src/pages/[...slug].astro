@@ -1,7 +1,7 @@
 ---
-import { getLiveEntry } from "astro:content";
 import Layout from "../layouts/Layout.astro";
 import BlockRenderer, { type Block } from "../components/BlockRenderer.astro";
+import { fetchPage } from "../lib/fetch-strapi";
 
 const { slug } = Astro.params;
 
@@ -11,13 +11,13 @@ if (!slug) {
   throw new Error("Slug is required");
 }
 
-const { entry } = await getLiveEntry("pages", slug);
+const page = await fetchPage(slug);
 
-if (!entry) {
+if (!page) {
   throw new Error("Page not found");
 }
 ---
 
 <Layout>
-  <BlockRenderer blocks={entry.data.blocks as Block[]} />
+  <BlockRenderer blocks={page.blocks as Block[]} />
 </Layout>

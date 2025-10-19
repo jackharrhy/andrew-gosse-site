@@ -1,8 +1,5 @@
-import type { LiveLoader, LoaderContext } from "astro/loaders";
-
 import { graphql } from "../graphql";
 import { execute } from "../graphql/execute";
-import { z } from "astro:content";
 
 export const HomepageQuery = graphql(`
   query Homepage {
@@ -101,58 +98,9 @@ export async function fetchPages() {
 export async function fetchPage(slug: string) {
   // TODO make this reach out to the api rather than filter all
   const pages = await fetchPages();
-  const page = pages.find((p) => p.slug === slug);
+  const page = pages.find((p) => p!.slug === slug);
   if (!page) {
     throw new Error(`Page with slug "${slug}" not found`);
   }
   return page;
-}
-
-const PageSchema = z.object({
-  slug: z.string(),
-  seo: z.object({
-    metaTitle: z.string(),
-    metaDescription: z.string(),
-    shareImage: z.object({ url: z.string() }),
-  }),
-  blocks: z.array(
-    z.discriminatedUnion("__typename", [
-      z.object({
-        __typename: z.literal("ComponentSharedRichText"),
-        body: z.string(),
-      }),
-      z.object({
-        __typename: z.literal("ComponentSharedMedia"),
-        file: z.object({
-          url: z.string(),
-          alternativeText: z.string(),
-        }),
-      }),
-    ])
-  ),
-});
-
-export function strapiPagesLoader(): LiveLoader {
-  return {
-    name: "strapi-pages-loader",
-    loadCollection: async ({}) => {
-      const pages = await fetchPages();
-
-      const entries = pages.map((page) => ({
-        id: page!.slug,
-        data: page!,
-      }));
-
-      return {
-        entries,
-      };
-    },
-    loadEntry: async ({ filter: { id } }) => {
-      const page = await fetchPage(id);
-      return {
-        id,
-        data: page,
-      };
-    },
-  };
 }

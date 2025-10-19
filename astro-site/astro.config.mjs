@@ -19,8 +19,4 @@ export default defineConfig({
   }),
 
   output: "server",
-
-  experimental: {
-    liveContentCollections: false,
-  },
 });
