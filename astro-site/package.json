@@ -12,16 +12,16 @@
     "ncu": "npm-check-updates"
   },
   "dependencies": {
-    "@astrojs/node": "^9.4.4",
-    "@tailwindcss/vite": "^4.1.13",
-    "astro": "^5.13.10",
-    "marked": "^16.3.0",
-    "tailwindcss": "^4.1.13"
+    "@astrojs/node": "^9.5.0",
+    "@tailwindcss/vite": "^4.1.14",
+    "astro": "^5.14.6",
+    "marked": "^16.4.1",
+    "tailwindcss": "^4.1.14"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^6.0.0",
     "@graphql-codegen/schema-ast": "^5.0.0",
     "@tailwindcss/typography": "^0.5.19",
-    "npm-check-updates": "^19.0.0"
+    "npm-check-updates": "^19.1.1"
   }
 }

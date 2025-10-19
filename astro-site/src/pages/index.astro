@@ -3,8 +3,6 @@ import BlockRenderer, { type Block } from "../components/BlockRenderer.astro";
 import Layout from "../layouts/Layout.astro";
 import { fetchHomepage } from "../lib/fetch-strapi";
 
-console.log("fetching homepage");
-
 const homepage = await fetchHomepage();
 ---
 

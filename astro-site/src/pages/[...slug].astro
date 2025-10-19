@@ -5,8 +5,6 @@ import { fetchPage } from "../lib/fetch-strapi";
 
 const { slug } = Astro.params;
 
-console.log("fetching page", slug);
-
 if (!slug) {
   throw new Error("Slug is required");
 }
