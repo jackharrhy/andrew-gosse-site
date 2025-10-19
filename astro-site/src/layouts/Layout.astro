@@ -1,13 +1,15 @@
 ---
 import Sidebar from "../components/Sidebar.astro";
 import "../styles/global.css";
+import { externalStrapiUrl } from "../consts";
 
 interface Props {
   title?: string;
   description?: string;
+  seoImageUrl?: string;
 }
 
-const { title, description } = Astro.props;
+const { title, description, seoImageUrl } = Astro.props;
 ---
 
 <html lang="en">
@@ -19,6 +21,38 @@ const { title, description } = Astro.props;
     <link rel="preconnect" href="https://rsms.me/" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     <title>{title || "Andrew Gosse Composer"}</title>
+    {
+      seoImageUrl && (
+        <>
+          <meta
+            property="og:image"
+            content={`${externalStrapiUrl}${seoImageUrl}`}
+          />
+          <meta
+            name="twitter:image"
+            content={`${externalStrapiUrl}${seoImageUrl}`}
+          />
+          <meta name="twitter:card" content="summary_large_image" />
+        </>
+      )
+    }
+    {
+      title && (
+        <>
+          <meta property="og:title" content={title} />
+          <meta name="twitter:title" content={title} />
+        </>
+      )
+    }
+    {
+      description && (
+        <>
+          <meta property="og:description" content={description} />
+          <meta name="twitter:description" content={description} />
+        </>
+      )
+    }
+    <meta property="og:type" content="website" />
   </head>
   <body class="flex flex-row p-8 gap-8 max-w-[100ch] mx-auto">
     <Sidebar />

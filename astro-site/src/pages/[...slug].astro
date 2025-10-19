@@ -11,11 +11,18 @@ if (!slug) {
 
 const page = await fetchPage(slug);
 
+// TODO make seo a single object and not an array
+const seo = page.seo?.[0];
+
 if (!page) {
   throw new Error("Page not found");
 }
 ---
 
-<Layout>
+<Layout
+  title={seo?.metaTitle}
+  description={seo?.metaDescription}
+  seoImageUrl={seo?.shareImage?.url}
+>
   <BlockRenderer blocks={page.blocks as Block[]} />
 </Layout>
