@@ -14,7 +14,7 @@
     },
     "metaDescription": {
       "type": "text",
-      "required": true
+      "required": false
     },
     "shareImage": {
       "type": "media",
