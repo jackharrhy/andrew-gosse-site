@@ -1,0 +1,4 @@
+copy-prod-data:
+  scp "jack@jackharrhy.dev:~/cookie-ops/core/volumes/andrewsite_strapi_data/data.db" ../strapi_data/data.db
+  scp "jack@jackharrhy.dev:~/cookie-ops/core/volumes/andrewsite_strapi_uploads/*" ./public/uploads
+
