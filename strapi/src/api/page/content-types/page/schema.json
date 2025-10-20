@@ -20,7 +20,7 @@
     "seo": {
       "type": "component",
       "component": "shared.seo",
-      "repeatable": true
+      "repeatable": false
     },
     "blocks": {
       "type": "dynamiczone",
