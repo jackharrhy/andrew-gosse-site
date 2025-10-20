@@ -21,7 +21,7 @@ const { title, description, seoImageUrl } = Astro.props;
     <link rel="preconnect" href="https://rsms.me/" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     <title>
-      {`${title} | Andrew Gosse Composer` || "Andrew Gosse Composer"}
+      {title ? `${title} | Andrew Gosse Composer` : "Andrew Gosse Composer"}
     </title>
     {
       seoImageUrl && (
