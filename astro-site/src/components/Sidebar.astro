@@ -10,7 +10,7 @@ interface Props {
 const sidebar = Astro.props.sidebar!;
 ---
 
-<nav class="flex flex-col gap-4 w-[12rem]">
+<nav class="flex flex-col gap-4 w-[12rem] shrink-0">
   <a href="/" class="pb-2">
     <img
       src={`${externalStrapiUrl}${sidebar.topImage!.url}`}

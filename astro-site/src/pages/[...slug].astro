@@ -11,8 +11,7 @@ if (!slug) {
 
 const page = await fetchPage(slug);
 
-// TODO make seo a single object and not an array
-const seo = page.seo?.[0];
+const seo = page.seo;
 
 if (!page) {
   throw new Error("Page not found");

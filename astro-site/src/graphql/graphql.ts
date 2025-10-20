@@ -62,8 +62,12 @@ export type BooleanFilterInput = {
 
 export type ComponentSharedMedia = {
   __typename?: "ComponentSharedMedia";
+  border?: Maybe<Scalars["String"]["output"]>;
   file: UploadFile;
+  height?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
+  rotation?: Maybe<Scalars["Int"]["output"]>;
+  width?: Maybe<Scalars["String"]["output"]>;
 };
 
 export type ComponentSharedRichText = {
@@ -563,15 +567,9 @@ export type Page = {
   createdAt?: Maybe<Scalars["DateTime"]["output"]>;
   documentId: Scalars["ID"]["output"];
   publishedAt?: Maybe<Scalars["DateTime"]["output"]>;
-  seo?: Maybe<Array<Maybe<ComponentSharedSeo>>>;
+  seo?: Maybe<ComponentSharedSeo>;
   slug: Scalars["String"]["output"];
   updatedAt?: Maybe<Scalars["DateTime"]["output"]>;
-};
-
-export type PageSeoArgs = {
-  filters?: InputMaybe<ComponentSharedSeoFiltersInput>;
-  pagination?: InputMaybe<PaginationArg>;
-  sort?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
 };
 
 export type PageBlocksDynamicZone =
@@ -600,7 +598,7 @@ export type PageFiltersInput = {
 export type PageInput = {
   blocks?: InputMaybe<Array<Scalars["PageBlocksDynamicZoneInput"]["input"]>>;
   publishedAt?: InputMaybe<Scalars["DateTime"]["input"]>;
-  seo?: InputMaybe<Array<InputMaybe<ComponentSharedSeoInput>>>;
+  seo?: InputMaybe<ComponentSharedSeoInput>;
   slug?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -1242,6 +1240,10 @@ export type HomepageQuery = {
     blocks?: Array<
       | {
           __typename: "ComponentSharedMedia";
+          width?: string | null;
+          height?: string | null;
+          rotation?: number | null;
+          border?: string | null;
           file: {
             __typename?: "UploadFile";
             url: string;
@@ -1291,15 +1293,19 @@ export type PagesQuery = {
   pages: Array<{
     __typename?: "Page";
     slug: string;
-    seo?: Array<{
+    seo?: {
       __typename?: "ComponentSharedSeo";
       metaTitle: string;
       metaDescription?: string | null;
       shareImage?: { __typename?: "UploadFile"; url: string } | null;
-    } | null> | null;
+    } | null;
     blocks?: Array<
       | {
           __typename: "ComponentSharedMedia";
+          width?: string | null;
+          height?: string | null;
+          rotation?: number | null;
+          border?: string | null;
           file: {
             __typename?: "UploadFile";
             url: string;
@@ -1355,6 +1361,10 @@ export const HomepageDocument = new TypedDocumentString(`
           url
           alternativeText
         }
+        width
+        height
+        rotation
+        border
       }
     }
   }
@@ -1408,6 +1418,10 @@ export const PagesDocument = new TypedDocumentString(`
           url
           alternativeText
         }
+        width
+        height
+        rotation
+        border
       }
     }
   }

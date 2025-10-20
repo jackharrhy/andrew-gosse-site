@@ -15,6 +15,18 @@
         "files",
         "videos"
       ]
+    },
+    "width": {
+      "type": "string"
+    },
+    "height": {
+      "type": "string"
+    },
+    "border": {
+      "type": "string"
+    },
+    "rotation": {
+      "type": "float"
     }
   }
 }

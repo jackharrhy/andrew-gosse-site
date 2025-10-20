@@ -14,6 +14,18 @@ interface Props {
 }
 
 const { blocks } = Astro.props;
+
+const generateStyle = (block: ComponentSharedMedia) => {
+  const rotation = typeof block.rotation === "number" ? block.rotation : 0;
+  const border = typeof block.border === "string" ? block.border : "none";
+  return {
+    transform: `rotate(${rotation}deg)`,
+    border: border,
+    width: block.width,
+    height: block.height,
+    margin: "0 auto",
+  };
+};
 ---
 
 <article class="prose lg:prose-xl w-full flex flex-col gap-4">
@@ -24,6 +36,7 @@ const { blocks } = Astro.props;
           <img
             src={`${externalStrapiUrl}${block.file!.url}`}
             alt={block.file!.alternativeText}
+            style={generateStyle(block)}
           />
         )}
         {block.__typename === "ComponentSharedRichText" && (

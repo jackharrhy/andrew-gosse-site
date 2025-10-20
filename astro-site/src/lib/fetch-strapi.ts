@@ -22,6 +22,10 @@ export const HomepageQuery = graphql(`
             url
             alternativeText
           }
+          width
+          height
+          rotation
+          border
         }
       }
     }
@@ -87,6 +91,10 @@ export const PagesQuery = graphql(`
             url
             alternativeText
           }
+          width
+          height
+          rotation
+          border
         }
       }
     }
