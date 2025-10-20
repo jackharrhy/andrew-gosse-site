@@ -65,7 +65,7 @@ const { title, description, seoImageUrl } = Astro.props;
   </head>
   <body class="flex flex-row p-8 gap-8 max-w-[100ch] mx-auto">
     <Sidebar sidebar={sidebar} />
-    <div transition:animate="fade" class="flex-1">
+    <div transition:animate="none" class="flex-1">
       <slot />
     </div>
   </body>
