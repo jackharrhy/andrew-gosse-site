@@ -32,21 +32,19 @@ const generateStyle = (block: ComponentSharedMedia) => {
 
 <article class="prose lg:prose-xl w-full flex flex-col gap-4">
   {
-    blocks.map((block) => (
-      <div>
-        {block.__typename === "ComponentSharedMedia" && (
-          <img
-            src={`${externalStrapiUrl}${block.file!.url}`}
-            alt={block.file!.alternativeText}
-            style={generateStyle(block)}
-          />
-        )}
-        {block.__typename === "ComponentSharedRichText" && (
-          <div set:html={marked.parse(block.body!)} />
-        )}
-        {block.__typename === "ComponentSharedSpecialComponent" &&
-          block.type === "riso_colors" && <RisoColors />}
-      </div>
-    ))
+    blocks.map((block) =>
+      block.__typename === "ComponentSharedMedia" ? (
+        <img
+          src={`${externalStrapiUrl}${block.file!.url}`}
+          alt={block.file!.alternativeText}
+          style={generateStyle(block)}
+        />
+      ) : block.__typename === "ComponentSharedRichText" ? (
+        <div set:html={marked.parse(block.body!)} />
+      ) : block.__typename === "ComponentSharedSpecialComponent" &&
+        block.type === "riso_colors" ? (
+        <RisoColors />
+      ) : null
+    )
   }
 </article>
