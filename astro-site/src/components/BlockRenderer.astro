@@ -4,11 +4,13 @@ import { marked } from "marked";
 import type {
   ComponentSharedMedia,
   ComponentSharedRichText,
+  ComponentSharedSpecialComponent,
 } from "../graphql/graphql";
 import { externalStrapiUrl } from "../consts";
+import RisoColors from "./RisoColors.astro";
 
-export type Block = ComponentSharedMedia | ComponentSharedRichText;
-
+/* prettier-ignore */
+export type Block = ComponentSharedMedia | ComponentSharedRichText | ComponentSharedSpecialComponent;
 interface Props {
   blocks: Block[];
 }
@@ -42,6 +44,8 @@ const generateStyle = (block: ComponentSharedMedia) => {
         {block.__typename === "ComponentSharedRichText" && (
           <div set:html={marked.parse(block.body!)} />
         )}
+        {block.__typename === "ComponentSharedSpecialComponent" &&
+          block.type === "riso_colors" && <RisoColors />}
       </div>
     ))
   }

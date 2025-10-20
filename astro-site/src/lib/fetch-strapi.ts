@@ -27,6 +27,10 @@ export const HomepageQuery = graphql(`
           rotation
           border
         }
+        ... on ComponentSharedSpecialComponent {
+          __typename
+          type
+        }
       }
     }
   }
@@ -95,6 +99,10 @@ export const PagesQuery = graphql(`
           height
           rotation
           border
+        }
+        ... on ComponentSharedSpecialComponent {
+          __typename
+          type
         }
       }
     }

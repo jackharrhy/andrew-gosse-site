@@ -441,7 +441,9 @@ export interface ApiHomepageHomepage extends Struct.SingleTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    blocks: Schema.Attribute.DynamicZone<['shared.rich-text', 'shared.media']>;
+    blocks: Schema.Attribute.DynamicZone<
+      ['shared.rich-text', 'shared.media', 'shared.special-component']
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -470,7 +472,9 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    blocks: Schema.Attribute.DynamicZone<['shared.rich-text', 'shared.media']>;
+    blocks: Schema.Attribute.DynamicZone<
+      ['shared.rich-text', 'shared.media', 'shared.special-component']
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_shared_special_components",
+  "info": {
+    "displayName": "Special Component",
+    "icon": "star"
+  },
+  "options": {},
+  "attributes": {
+    "type": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "riso-colors"
+      ]
+    }
+  },
+  "config": {}
+}

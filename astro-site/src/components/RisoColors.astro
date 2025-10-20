@@ -1,0 +1,76 @@
+---
+import { risoColors } from "../lib/riso-colors";
+---
+
+<div class="flex flex-wrap gap-2">
+  {
+    risoColors.map((color, index) => (
+      <div
+        class="text-white text-shadow-md p-1.5 px-2 h-30 w-30 rounded-full items-center justify-center flex text-center border border-black/10 cursor-pointer hover:scale-105 transition-transform duration-200 relative"
+        style={`background-color: ${color.color};`}
+        data-color={color.color}
+        data-name={color.name}
+        id={`color-${index}`}
+      >
+        {color.name}
+        <div
+          class="absolute inset-0 rounded-full bg-black/20 opacity-0 transition-opacity duration-200 pointer-events-none"
+          id={`overlay-${index}`}
+        />
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  function rgbToRgba(rgbString: string, alpha: number = 1): string {
+    const match = rgbString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (!match) return rgbString;
+
+    const [, r, g, b] = match;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  async function copyToClipboard(text: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err) {
+      console.error("Failed to copy to clipboard:", err);
+      return false;
+    }
+  }
+
+  function showCopyFeedback(element: HTMLElement, overlayElement: HTMLElement) {
+    overlayElement.style.opacity = "1";
+
+    element.style.transform = "scale(0.95)";
+
+    setTimeout(() => {
+      overlayElement.style.opacity = "0";
+      element.style.transform = "";
+    }, 200);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const colorElements = document.querySelectorAll("[data-color]");
+
+    colorElements.forEach((element, index) => {
+      element.addEventListener("click", async () => {
+        const rgbColor = element.getAttribute("data-color");
+        const colorName = element.getAttribute("data-name");
+        const overlay = document.getElementById(`overlay-${index}`);
+
+        if (rgbColor && overlay) {
+          const rgbaColor = rgbToRgba(rgbColor);
+          const success = await copyToClipboard(rgbaColor);
+
+          if (success) {
+            showCopyFeedback(element as HTMLElement, overlay);
+            console.log(`Copied ${colorName}: ${rgbaColor}`);
+          }
+        }
+      });
+    });
+  });
+</script>

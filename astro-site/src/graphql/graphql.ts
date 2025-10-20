@@ -66,7 +66,7 @@ export type ComponentSharedMedia = {
   file: UploadFile;
   height?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
-  rotation?: Maybe<Scalars["Int"]["output"]>;
+  rotation?: Maybe<Scalars["Float"]["output"]>;
   width?: Maybe<Scalars["String"]["output"]>;
 };
 
@@ -172,6 +172,12 @@ export type ComponentSharedSidebarLinkInput = {
   url?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+export type ComponentSharedSpecialComponent = {
+  __typename?: "ComponentSharedSpecialComponent";
+  id: Scalars["ID"]["output"];
+  type: Enum_Componentsharedspecialcomponent_Type;
+};
+
 export type DateTimeFilterInput = {
   and?: InputMaybe<Array<InputMaybe<Scalars["DateTime"]["input"]>>>;
   between?: InputMaybe<Array<InputMaybe<Scalars["DateTime"]["input"]>>>;
@@ -210,6 +216,10 @@ export enum Enum_Componentsharedsidebarlink_Service {
   ItchIo = "Itch_io",
   LinkedIn = "LinkedIn",
   YouTube = "YouTube",
+}
+
+export enum Enum_Componentsharedspecialcomponent_Type {
+  RisoColors = "riso_colors",
 }
 
 export type Error = {
@@ -256,6 +266,7 @@ export type GenericMorph =
   | ComponentSharedSidebarCategory
   | ComponentSharedSidebarItem
   | ComponentSharedSidebarLink
+  | ComponentSharedSpecialComponent
   | Homepage
   | I18NLocale
   | Page
@@ -281,6 +292,7 @@ export type Homepage = {
 export type HomepageBlocksDynamicZone =
   | ComponentSharedMedia
   | ComponentSharedRichText
+  | ComponentSharedSpecialComponent
   | Error;
 
 export type HomepageInput = {
@@ -575,6 +587,7 @@ export type Page = {
 export type PageBlocksDynamicZone =
   | ComponentSharedMedia
   | ComponentSharedRichText
+  | ComponentSharedSpecialComponent
   | Error;
 
 export type PageEntityResponseCollection = {
@@ -1251,6 +1264,10 @@ export type HomepageQuery = {
           };
         }
       | { __typename: "ComponentSharedRichText"; body?: string | null }
+      | {
+          __typename: "ComponentSharedSpecialComponent";
+          type: Enum_Componentsharedspecialcomponent_Type;
+        }
       | { __typename?: "Error" }
       | null
     > | null;
@@ -1313,6 +1330,10 @@ export type PagesQuery = {
           };
         }
       | { __typename: "ComponentSharedRichText"; body?: string | null }
+      | {
+          __typename: "ComponentSharedSpecialComponent";
+          type: Enum_Componentsharedspecialcomponent_Type;
+        }
       | { __typename?: "Error" }
       | null
     > | null;
@@ -1365,6 +1386,10 @@ export const HomepageDocument = new TypedDocumentString(`
         height
         rotation
         border
+      }
+      ... on ComponentSharedSpecialComponent {
+        __typename
+        type
       }
     }
   }
@@ -1422,6 +1447,10 @@ export const PagesDocument = new TypedDocumentString(`
         height
         rotation
         border
+      }
+      ... on ComponentSharedSpecialComponent {
+        __typename
+        type
       }
     }
   }

@@ -26,7 +26,8 @@
       "type": "dynamiczone",
       "components": [
         "shared.rich-text",
-        "shared.media"
+        "shared.media",
+        "shared.special-component"
       ]
     }
   }

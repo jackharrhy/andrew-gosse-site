@@ -97,6 +97,18 @@ export interface SharedSidebarLink extends Struct.ComponentSchema {
   };
 }
 
+export interface SharedSpecialComponent extends Struct.ComponentSchema {
+  collectionName: 'components_shared_special_components';
+  info: {
+    displayName: 'Special Component';
+    icon: 'star';
+  };
+  attributes: {
+    type: Schema.Attribute.Enumeration<['riso-colors']> &
+      Schema.Attribute.Required;
+  };
+}
+
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
@@ -106,6 +118,7 @@ declare module '@strapi/strapi' {
       'shared.sidebar-category': SharedSidebarCategory;
       'shared.sidebar-item': SharedSidebarItem;
       'shared.sidebar-link': SharedSidebarLink;
+      'shared.special-component': SharedSpecialComponent;
     }
   }
 }
