@@ -33,8 +33,8 @@ export async function fetchHomepage() {
   return result.data?.homepage;
 }
 
-export const SidebarQuery = graphql(`
-  query Sidebar {
+export const SiteQuery = graphql(`
+  query Site {
     sidebar {
       topImage {
         url
@@ -54,12 +54,15 @@ export const SidebarQuery = graphql(`
         url
       }
     }
+    site {
+      backgroundColor
+    }
   }
 `);
 
-export async function fetchSidebar() {
-  const result = await execute(SidebarQuery);
-  return result.data!.sidebar!;
+export async function fetchSite() {
+  const result = await execute(SiteQuery);
+  return result.data!;
 }
 
 export const PagesQuery = graphql(`

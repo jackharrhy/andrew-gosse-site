@@ -10,4 +10,7 @@ export default () => ({
   "users-permissions": {
     enabled: true,
   },
+  "color-picker": {
+    enabled: true,
+  },
 });

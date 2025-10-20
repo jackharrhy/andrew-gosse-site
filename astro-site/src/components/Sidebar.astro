@@ -1,8 +1,13 @@
 ---
 import { externalStrapiUrl } from "../consts";
-import { fetchSidebar } from "../lib/fetch-strapi";
+import type { Sidebar } from "../graphql/graphql";
+import type { fetchSite } from "../lib/fetch-strapi";
 
-const sidebar = await fetchSidebar();
+interface Props {
+  sidebar: Awaited<ReturnType<typeof fetchSite>>["sidebar"];
+}
+
+const sidebar = Astro.props.sidebar!;
 ---
 
 <nav class="flex flex-col gap-4 w-[12rem]">

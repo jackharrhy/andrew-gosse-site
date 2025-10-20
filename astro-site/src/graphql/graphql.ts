@@ -62,7 +62,7 @@ export type BooleanFilterInput = {
 
 export type ComponentSharedMedia = {
   __typename?: "ComponentSharedMedia";
-  file?: Maybe<UploadFile>;
+  file: UploadFile;
   id: Scalars["ID"]["output"];
 };
 
@@ -75,7 +75,7 @@ export type ComponentSharedRichText = {
 export type ComponentSharedSeo = {
   __typename?: "ComponentSharedSeo";
   id: Scalars["ID"]["output"];
-  metaDescription: Scalars["String"]["output"];
+  metaDescription?: Maybe<Scalars["String"]["output"]>;
   metaTitle: Scalars["String"]["output"];
   shareImage?: Maybe<UploadFile>;
 };
@@ -258,6 +258,7 @@ export type GenericMorph =
   | ReviewWorkflowsWorkflow
   | ReviewWorkflowsWorkflowStage
   | Sidebar
+  | Site
   | UploadFile
   | UsersPermissionsPermission
   | UsersPermissionsRole
@@ -405,6 +406,7 @@ export type Mutation = {
   deleteReviewWorkflowsWorkflow?: Maybe<DeleteMutationResponse>;
   deleteReviewWorkflowsWorkflowStage?: Maybe<DeleteMutationResponse>;
   deleteSidebar?: Maybe<DeleteMutationResponse>;
+  deleteSite?: Maybe<DeleteMutationResponse>;
   deleteUploadFile?: Maybe<UploadFile>;
   /** Delete an existing role */
   deleteUsersPermissionsRole?: Maybe<UsersPermissionsDeleteRolePayload>;
@@ -424,6 +426,7 @@ export type Mutation = {
   updateReviewWorkflowsWorkflow?: Maybe<ReviewWorkflowsWorkflow>;
   updateReviewWorkflowsWorkflowStage?: Maybe<ReviewWorkflowsWorkflowStage>;
   updateSidebar?: Maybe<Sidebar>;
+  updateSite?: Maybe<Site>;
   updateUploadFile: UploadFile;
   /** Update an existing role */
   updateUsersPermissionsRole?: Maybe<UsersPermissionsUpdateRolePayload>;
@@ -534,6 +537,11 @@ export type MutationUpdateSidebarArgs = {
   status?: InputMaybe<PublicationStatus>;
 };
 
+export type MutationUpdateSiteArgs = {
+  data: SiteInput;
+  status?: InputMaybe<PublicationStatus>;
+};
+
 export type MutationUpdateUploadFileArgs = {
   id: Scalars["ID"]["input"];
   info?: InputMaybe<FileInfoInput>;
@@ -633,6 +641,7 @@ export type Query = {
   reviewWorkflowsWorkflows: Array<Maybe<ReviewWorkflowsWorkflow>>;
   reviewWorkflowsWorkflows_connection?: Maybe<ReviewWorkflowsWorkflowEntityResponseCollection>;
   sidebar?: Maybe<Sidebar>;
+  site?: Maybe<Site>;
   uploadFile?: Maybe<UploadFile>;
   uploadFiles: Array<Maybe<UploadFile>>;
   uploadFiles_connection?: Maybe<UploadFileEntityResponseCollection>;
@@ -725,6 +734,10 @@ export type QueryReviewWorkflowsWorkflows_ConnectionArgs = {
 };
 
 export type QuerySidebarArgs = {
+  status?: InputMaybe<PublicationStatus>;
+};
+
+export type QuerySiteArgs = {
   status?: InputMaybe<PublicationStatus>;
 };
 
@@ -910,6 +923,20 @@ export type SidebarInput = {
   links?: InputMaybe<Array<InputMaybe<ComponentSharedSidebarLinkInput>>>;
   publishedAt?: InputMaybe<Scalars["DateTime"]["input"]>;
   topImage?: InputMaybe<Scalars["ID"]["input"]>;
+};
+
+export type Site = {
+  __typename?: "Site";
+  backgroundColor: Scalars["String"]["output"];
+  createdAt?: Maybe<Scalars["DateTime"]["output"]>;
+  documentId: Scalars["ID"]["output"];
+  publishedAt?: Maybe<Scalars["DateTime"]["output"]>;
+  updatedAt?: Maybe<Scalars["DateTime"]["output"]>;
+};
+
+export type SiteInput = {
+  backgroundColor?: InputMaybe<Scalars["String"]["input"]>;
+  publishedAt?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
 
 export type StringFilterInput = {
@@ -1209,17 +1236,17 @@ export type HomepageQuery = {
     seo?: {
       __typename?: "ComponentSharedSeo";
       metaTitle: string;
-      metaDescription: string;
+      metaDescription?: string | null;
       shareImage?: { __typename?: "UploadFile"; url: string } | null;
     } | null;
     blocks?: Array<
       | {
           __typename: "ComponentSharedMedia";
-          file?: {
+          file: {
             __typename?: "UploadFile";
             url: string;
             alternativeText?: string | null;
-          } | null;
+          };
         }
       | { __typename: "ComponentSharedRichText"; body?: string | null }
       | { __typename?: "Error" }
@@ -1228,9 +1255,9 @@ export type HomepageQuery = {
   } | null;
 };
 
-export type SidebarQueryVariables = Exact<{ [key: string]: never }>;
+export type SiteQueryVariables = Exact<{ [key: string]: never }>;
 
-export type SidebarQuery = {
+export type SiteQuery = {
   __typename?: "Query";
   sidebar?: {
     __typename?: "Sidebar";
@@ -1254,6 +1281,7 @@ export type SidebarQuery = {
       url: string;
     } | null> | null;
   } | null;
+  site?: { __typename?: "Site"; backgroundColor: string } | null;
 };
 
 export type PagesQueryVariables = Exact<{ [key: string]: never }>;
@@ -1266,17 +1294,17 @@ export type PagesQuery = {
     seo?: Array<{
       __typename?: "ComponentSharedSeo";
       metaTitle: string;
-      metaDescription: string;
+      metaDescription?: string | null;
       shareImage?: { __typename?: "UploadFile"; url: string } | null;
     } | null> | null;
     blocks?: Array<
       | {
           __typename: "ComponentSharedMedia";
-          file?: {
+          file: {
             __typename?: "UploadFile";
             url: string;
             alternativeText?: string | null;
-          } | null;
+          };
         }
       | { __typename: "ComponentSharedRichText"; body?: string | null }
       | { __typename?: "Error" }
@@ -1332,8 +1360,8 @@ export const HomepageDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<HomepageQuery, HomepageQueryVariables>;
-export const SidebarDocument = new TypedDocumentString(`
-    query Sidebar {
+export const SiteDocument = new TypedDocumentString(`
+    query Site {
   sidebar {
     topImage {
       url
@@ -1353,8 +1381,11 @@ export const SidebarDocument = new TypedDocumentString(`
       url
     }
   }
+  site {
+    backgroundColor
+  }
 }
-    `) as unknown as TypedDocumentString<SidebarQuery, SidebarQueryVariables>;
+    `) as unknown as TypedDocumentString<SiteQuery, SiteQueryVariables>;
 export const PagesDocument = new TypedDocumentString(`
     query Pages {
   pages(pagination: {pageSize: 100}) {

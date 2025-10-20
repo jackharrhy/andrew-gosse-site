@@ -2,12 +2,17 @@
 import Sidebar from "../components/Sidebar.astro";
 import "../styles/global.css";
 import { externalStrapiUrl } from "../consts";
+import { fetchSite } from "../lib/fetch-strapi";
 
 interface Props {
   title?: string;
   description?: string;
   seoImageUrl?: string;
 }
+
+const site = await fetchSite();
+const siteData = site.site!;
+const sidebar = site.sidebar!;
 
 const { title, description, seoImageUrl } = Astro.props;
 ---
@@ -57,7 +62,13 @@ const { title, description, seoImageUrl } = Astro.props;
     <meta property="og:type" content="website" />
   </head>
   <body class="flex flex-row p-8 gap-8 max-w-[100ch] mx-auto">
-    <Sidebar />
+    <Sidebar sidebar={sidebar} />
     <slot />
   </body>
 </html>
+
+<style define:vars={{ backgroundColor: siteData.backgroundColor }}>
+  body {
+    background-color: var(--backgroundColor);
+  }
+</style>
