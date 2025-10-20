@@ -25,8 +25,12 @@ const { title, description, seoImageUrl } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.png" />
     <meta name="viewport" content="width=device-width" />
     {description && <meta name="description" content={description} />}
-    <link rel="preconnect" href="https://rsms.me/" />
-    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gluten:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
     <title>
       {title ? `${title} | Andrew Gosse Composer` : "Andrew Gosse Composer"}
     </title>
@@ -70,10 +74,6 @@ const { title, description, seoImageUrl } = Astro.props;
     </div>
   </body>
 </html>
-
-<style is:global>
-  @import url("https://fonts.googleapis.com/css2?family=Gluten:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap");
-</style>
 
 <style define:vars={{ backgroundColor: siteData.backgroundColor }}>
   body {
