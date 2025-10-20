@@ -101,6 +101,7 @@ export type ComponentSharedSeoInput = {
 
 export type ComponentSharedSidebarCategory = {
   __typename?: "ComponentSharedSidebarCategory";
+  backgroundImage?: Maybe<UploadFile>;
   categoryTitle?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
   items: Array<Maybe<ComponentSharedSidebarItem>>;
@@ -125,6 +126,7 @@ export type ComponentSharedSidebarCategoryFiltersInput = {
 };
 
 export type ComponentSharedSidebarCategoryInput = {
+  backgroundImage?: InputMaybe<Scalars["ID"]["input"]>;
   categoryTitle?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["ID"]["input"]>;
   items?: InputMaybe<Array<InputMaybe<ComponentSharedSidebarItemInput>>>;
@@ -1288,6 +1290,7 @@ export type SiteQuery = {
     categories?: Array<{
       __typename?: "ComponentSharedSidebarCategory";
       categoryTitle?: string | null;
+      backgroundImage?: { __typename?: "UploadFile"; url: string } | null;
       items: Array<{
         __typename?: "ComponentSharedSidebarItem";
         text?: string | null;
@@ -1404,6 +1407,9 @@ export const SiteDocument = new TypedDocumentString(`
     }
     categories {
       categoryTitle
+      backgroundImage {
+        url
+      }
       items {
         text
         page {

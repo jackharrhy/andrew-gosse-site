@@ -50,6 +50,9 @@ export const SiteQuery = graphql(`
       }
       categories {
         categoryTitle
+        backgroundImage {
+          url
+        }
         items {
           text
           page {

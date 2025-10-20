@@ -22,7 +22,16 @@ const sidebar = Astro.props.sidebar!;
     {
       sidebar.categories!.map((category) => (
         <div class="flex flex-col gap-1.5">
-          <p class="text-lg font-bold">{category!.categoryTitle}</p>
+          <p
+            class="sidebar-title text-lg font-bold"
+            style={
+              category!.backgroundImage?.url
+                ? `--background-image: url('${`${externalStrapiUrl}${category!.backgroundImage.url}`}')`
+                : undefined
+            }
+          >
+            {category!.categoryTitle}
+          </p>
           <ul class="flex flex-col gap-2">
             {category!.items.map((item) => (
               <li class="list-disc">
@@ -54,3 +63,19 @@ const sidebar = Astro.props.sidebar!;
     }
   </div>
 </nav>
+
+<style>
+  .sidebar-title {
+    background-image: var(--background-image);
+    filter: brightness(1.4);
+    font-size: 1.5rem;
+    padding: 0.3rem 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    text-align: center;
+    font-family: "Gluten", cursive;
+    font-weight: 900;
+    color: black;
+  }
+</style>

@@ -71,6 +71,10 @@ const { title, description, seoImageUrl } = Astro.props;
   </body>
 </html>
 
+<style is:global>
+  @import url("https://fonts.googleapis.com/css2?family=Gluten:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap");
+</style>
+
 <style define:vars={{ backgroundColor: siteData.backgroundColor }}>
   body {
     background-color: var(--backgroundColor);

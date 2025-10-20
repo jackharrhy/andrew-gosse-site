@@ -50,6 +50,9 @@ export interface SharedSidebarCategory extends Struct.ComponentSchema {
     icon: 'grid';
   };
   attributes: {
+    backgroundImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
     categoryTitle: Schema.Attribute.String;
     items: Schema.Attribute.Component<'shared.sidebar-item', true> &
       Schema.Attribute.Required &

@@ -15,6 +15,16 @@
       "repeatable": true,
       "required": true,
       "min": 1
+    },
+    "backgroundImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   },
   "config": {}
