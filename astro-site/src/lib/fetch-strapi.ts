@@ -79,6 +79,13 @@ export const SiteQuery = graphql(`
         service
         url
       }
+      listAdornments {
+        media {
+          file {
+            url
+          }
+        }
+      }
     }
     site {
       backgroundColor

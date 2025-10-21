@@ -1039,6 +1039,8 @@ export type Sidebar = {
   createdAt?: Maybe<Scalars["DateTime"]["output"]>;
   documentId: Scalars["ID"]["output"];
   links?: Maybe<Array<Maybe<ComponentSharedSidebarLink>>>;
+  listAdornments: Array<Maybe<Adornment>>;
+  listAdornments_connection?: Maybe<AdornmentRelationResponseCollection>;
   publishedAt?: Maybe<Scalars["DateTime"]["output"]>;
   topImage?: Maybe<UploadFile>;
   updatedAt?: Maybe<Scalars["DateTime"]["output"]>;
@@ -1056,11 +1058,24 @@ export type SidebarLinksArgs = {
   sort?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
 };
 
+export type SidebarListAdornmentsArgs = {
+  filters?: InputMaybe<AdornmentFiltersInput>;
+  pagination?: InputMaybe<PaginationArg>;
+  sort?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+};
+
+export type SidebarListAdornments_ConnectionArgs = {
+  filters?: InputMaybe<AdornmentFiltersInput>;
+  pagination?: InputMaybe<PaginationArg>;
+  sort?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+};
+
 export type SidebarInput = {
   categories?: InputMaybe<
     Array<InputMaybe<ComponentSharedSidebarCategoryInput>>
   >;
   links?: InputMaybe<Array<InputMaybe<ComponentSharedSidebarLinkInput>>>;
+  listAdornments?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
   publishedAt?: InputMaybe<Scalars["DateTime"]["input"]>;
   topImage?: InputMaybe<Scalars["ID"]["input"]>;
 };
@@ -1447,6 +1462,13 @@ export type SiteQuery = {
       service: Enum_Componentsharedsidebarlink_Service;
       url: string;
     } | null> | null;
+    listAdornments: Array<{
+      __typename?: "Adornment";
+      media?: {
+        __typename?: "ComponentSharedMedia";
+        file: { __typename?: "UploadFile"; url: string };
+      } | null;
+    } | null>;
   } | null;
   site?: { __typename?: "Site"; backgroundColor: string } | null;
 };
@@ -1598,6 +1620,13 @@ export const SiteDocument = new TypedDocumentString(`
     links {
       service
       url
+    }
+    listAdornments {
+      media {
+        file {
+          url
+        }
+      }
     }
   }
   site {

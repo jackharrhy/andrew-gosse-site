@@ -30,6 +30,11 @@
       "type": "component",
       "component": "shared.sidebar-link",
       "repeatable": true
+    },
+    "listAdornments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::adornment.adornment"
     }
   }
 }
