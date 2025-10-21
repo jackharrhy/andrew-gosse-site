@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "adornments",
+  "info": {
+    "singularName": "adornment",
+    "pluralName": "adornments",
+    "displayName": "Adornments"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "media": {
+      "type": "component",
+      "component": "shared.media",
+      "repeatable": false
+    }
+  }
+}

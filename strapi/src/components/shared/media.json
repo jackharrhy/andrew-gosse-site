@@ -27,6 +27,23 @@
     },
     "rotation": {
       "type": "float"
+    },
+    "adornments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::adornment.adornment"
+    },
+    "top": {
+      "type": "string"
+    },
+    "bottom": {
+      "type": "string"
+    },
+    "left": {
+      "type": "string"
+    },
+    "right": {
+      "type": "string"
     }
   }
 }

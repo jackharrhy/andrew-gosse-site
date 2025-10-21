@@ -35,6 +35,45 @@ export type Scalars = {
   PageBlocksDynamicZoneInput: { input: any; output: any };
 };
 
+export type Adornment = {
+  __typename?: "Adornment";
+  createdAt?: Maybe<Scalars["DateTime"]["output"]>;
+  documentId: Scalars["ID"]["output"];
+  media?: Maybe<ComponentSharedMedia>;
+  name?: Maybe<Scalars["String"]["output"]>;
+  publishedAt?: Maybe<Scalars["DateTime"]["output"]>;
+  updatedAt?: Maybe<Scalars["DateTime"]["output"]>;
+};
+
+export type AdornmentEntityResponseCollection = {
+  __typename?: "AdornmentEntityResponseCollection";
+  nodes: Array<Adornment>;
+  pageInfo: Pagination;
+};
+
+export type AdornmentFiltersInput = {
+  and?: InputMaybe<Array<InputMaybe<AdornmentFiltersInput>>>;
+  createdAt?: InputMaybe<DateTimeFilterInput>;
+  documentId?: InputMaybe<IdFilterInput>;
+  media?: InputMaybe<ComponentSharedMediaFiltersInput>;
+  name?: InputMaybe<StringFilterInput>;
+  not?: InputMaybe<AdornmentFiltersInput>;
+  or?: InputMaybe<Array<InputMaybe<AdornmentFiltersInput>>>;
+  publishedAt?: InputMaybe<DateTimeFilterInput>;
+  updatedAt?: InputMaybe<DateTimeFilterInput>;
+};
+
+export type AdornmentInput = {
+  media?: InputMaybe<ComponentSharedMediaInput>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  publishedAt?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
+export type AdornmentRelationResponseCollection = {
+  __typename?: "AdornmentRelationResponseCollection";
+  nodes: Array<Adornment>;
+};
+
 export type BooleanFilterInput = {
   and?: InputMaybe<Array<InputMaybe<Scalars["Boolean"]["input"]>>>;
   between?: InputMaybe<Array<InputMaybe<Scalars["Boolean"]["input"]>>>;
@@ -62,12 +101,59 @@ export type BooleanFilterInput = {
 
 export type ComponentSharedMedia = {
   __typename?: "ComponentSharedMedia";
+  adornments: Array<Maybe<Adornment>>;
+  adornments_connection?: Maybe<AdornmentRelationResponseCollection>;
   border?: Maybe<Scalars["String"]["output"]>;
+  bottom?: Maybe<Scalars["Float"]["output"]>;
   file: UploadFile;
   height?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
+  left?: Maybe<Scalars["Float"]["output"]>;
+  right?: Maybe<Scalars["Float"]["output"]>;
   rotation?: Maybe<Scalars["Float"]["output"]>;
+  top?: Maybe<Scalars["Float"]["output"]>;
   width?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type ComponentSharedMediaAdornmentsArgs = {
+  filters?: InputMaybe<AdornmentFiltersInput>;
+  pagination?: InputMaybe<PaginationArg>;
+  sort?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+};
+
+export type ComponentSharedMediaAdornments_ConnectionArgs = {
+  filters?: InputMaybe<AdornmentFiltersInput>;
+  pagination?: InputMaybe<PaginationArg>;
+  sort?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+};
+
+export type ComponentSharedMediaFiltersInput = {
+  adornments?: InputMaybe<AdornmentFiltersInput>;
+  and?: InputMaybe<Array<InputMaybe<ComponentSharedMediaFiltersInput>>>;
+  border?: InputMaybe<StringFilterInput>;
+  bottom?: InputMaybe<FloatFilterInput>;
+  height?: InputMaybe<StringFilterInput>;
+  left?: InputMaybe<FloatFilterInput>;
+  not?: InputMaybe<ComponentSharedMediaFiltersInput>;
+  or?: InputMaybe<Array<InputMaybe<ComponentSharedMediaFiltersInput>>>;
+  right?: InputMaybe<FloatFilterInput>;
+  rotation?: InputMaybe<FloatFilterInput>;
+  top?: InputMaybe<FloatFilterInput>;
+  width?: InputMaybe<StringFilterInput>;
+};
+
+export type ComponentSharedMediaInput = {
+  adornments?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
+  border?: InputMaybe<Scalars["String"]["input"]>;
+  bottom?: InputMaybe<Scalars["Float"]["input"]>;
+  file?: InputMaybe<Scalars["ID"]["input"]>;
+  height?: InputMaybe<Scalars["String"]["input"]>;
+  id?: InputMaybe<Scalars["ID"]["input"]>;
+  left?: InputMaybe<Scalars["Float"]["input"]>;
+  right?: InputMaybe<Scalars["Float"]["input"]>;
+  rotation?: InputMaybe<Scalars["Float"]["input"]>;
+  top?: InputMaybe<Scalars["Float"]["input"]>;
+  width?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type ComponentSharedRichText = {
@@ -262,6 +348,7 @@ export type FloatFilterInput = {
 };
 
 export type GenericMorph =
+  | Adornment
   | ComponentSharedMedia
   | ComponentSharedRichText
   | ComponentSharedSeo
@@ -412,6 +499,7 @@ export type Mutation = {
   __typename?: "Mutation";
   /** Change user password. Confirm with the current password. */
   changePassword?: Maybe<UsersPermissionsLoginPayload>;
+  createAdornment?: Maybe<Adornment>;
   createPage?: Maybe<Page>;
   createReviewWorkflowsWorkflow?: Maybe<ReviewWorkflowsWorkflow>;
   createReviewWorkflowsWorkflowStage?: Maybe<ReviewWorkflowsWorkflowStage>;
@@ -419,6 +507,7 @@ export type Mutation = {
   createUsersPermissionsRole?: Maybe<UsersPermissionsCreateRolePayload>;
   /** Create a new user */
   createUsersPermissionsUser: UsersPermissionsUserEntityResponse;
+  deleteAdornment?: Maybe<DeleteMutationResponse>;
   deleteHomepage?: Maybe<DeleteMutationResponse>;
   deletePage?: Maybe<DeleteMutationResponse>;
   deleteReviewWorkflowsWorkflow?: Maybe<DeleteMutationResponse>;
@@ -439,6 +528,7 @@ export type Mutation = {
   register: UsersPermissionsLoginPayload;
   /** Reset user password. Confirm with a code (resetToken from forgotPassword) */
   resetPassword?: Maybe<UsersPermissionsLoginPayload>;
+  updateAdornment?: Maybe<Adornment>;
   updateHomepage?: Maybe<Homepage>;
   updatePage?: Maybe<Page>;
   updateReviewWorkflowsWorkflow?: Maybe<ReviewWorkflowsWorkflow>;
@@ -456,6 +546,11 @@ export type MutationChangePasswordArgs = {
   currentPassword: Scalars["String"]["input"];
   password: Scalars["String"]["input"];
   passwordConfirmation: Scalars["String"]["input"];
+};
+
+export type MutationCreateAdornmentArgs = {
+  data: AdornmentInput;
+  status?: InputMaybe<PublicationStatus>;
 };
 
 export type MutationCreatePageArgs = {
@@ -479,6 +574,10 @@ export type MutationCreateUsersPermissionsRoleArgs = {
 
 export type MutationCreateUsersPermissionsUserArgs = {
   data: UsersPermissionsUserInput;
+};
+
+export type MutationDeleteAdornmentArgs = {
+  documentId: Scalars["ID"]["input"];
 };
 
 export type MutationDeletePageArgs = {
@@ -525,6 +624,12 @@ export type MutationResetPasswordArgs = {
   code: Scalars["String"]["input"];
   password: Scalars["String"]["input"];
   passwordConfirmation: Scalars["String"]["input"];
+};
+
+export type MutationUpdateAdornmentArgs = {
+  data: AdornmentInput;
+  documentId: Scalars["ID"]["input"];
+  status?: InputMaybe<PublicationStatus>;
 };
 
 export type MutationUpdateHomepageArgs = {
@@ -639,6 +744,9 @@ export enum PublicationStatus {
 
 export type Query = {
   __typename?: "Query";
+  adornment?: Maybe<Adornment>;
+  adornments: Array<Maybe<Adornment>>;
+  adornments_connection?: Maybe<AdornmentEntityResponseCollection>;
   homepage?: Maybe<Homepage>;
   i18NLocale?: Maybe<I18NLocale>;
   i18NLocales: Array<Maybe<I18NLocale>>;
@@ -664,6 +772,25 @@ export type Query = {
   usersPermissionsUser?: Maybe<UsersPermissionsUser>;
   usersPermissionsUsers: Array<Maybe<UsersPermissionsUser>>;
   usersPermissionsUsers_connection?: Maybe<UsersPermissionsUserEntityResponseCollection>;
+};
+
+export type QueryAdornmentArgs = {
+  documentId: Scalars["ID"]["input"];
+  status?: InputMaybe<PublicationStatus>;
+};
+
+export type QueryAdornmentsArgs = {
+  filters?: InputMaybe<AdornmentFiltersInput>;
+  pagination?: InputMaybe<PaginationArg>;
+  sort?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+  status?: InputMaybe<PublicationStatus>;
+};
+
+export type QueryAdornments_ConnectionArgs = {
+  filters?: InputMaybe<AdornmentFiltersInput>;
+  pagination?: InputMaybe<PaginationArg>;
+  sort?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+  status?: InputMaybe<PublicationStatus>;
 };
 
 export type QueryHomepageArgs = {
@@ -1264,6 +1391,22 @@ export type HomepageQuery = {
             url: string;
             alternativeText?: string | null;
           };
+          adornments: Array<{
+            __typename?: "Adornment";
+            media?: {
+              __typename?: "ComponentSharedMedia";
+              left?: number | null;
+              top?: number | null;
+              width?: string | null;
+              height?: string | null;
+              rotation?: number | null;
+              file: {
+                __typename?: "UploadFile";
+                url: string;
+                alternativeText?: string | null;
+              };
+            } | null;
+          } | null>;
         }
       | { __typename: "ComponentSharedRichText"; body?: string | null }
       | {
@@ -1331,6 +1474,22 @@ export type PagesQuery = {
             url: string;
             alternativeText?: string | null;
           };
+          adornments: Array<{
+            __typename?: "Adornment";
+            media?: {
+              __typename?: "ComponentSharedMedia";
+              left?: number | null;
+              top?: number | null;
+              width?: string | null;
+              height?: string | null;
+              rotation?: number | null;
+              file: {
+                __typename?: "UploadFile";
+                url: string;
+                alternativeText?: string | null;
+              };
+            } | null;
+          } | null>;
         }
       | { __typename: "ComponentSharedRichText"; body?: string | null }
       | {
@@ -1389,6 +1548,19 @@ export const HomepageDocument = new TypedDocumentString(`
         height
         rotation
         border
+        adornments {
+          media {
+            file {
+              url
+              alternativeText
+            }
+            left
+            top
+            width
+            height
+            rotation
+          }
+        }
       }
       ... on ComponentSharedSpecialComponent {
         __typename
@@ -1453,6 +1625,19 @@ export const PagesDocument = new TypedDocumentString(`
         height
         rotation
         border
+        adornments {
+          media {
+            file {
+              url
+              alternativeText
+            }
+            left
+            top
+            width
+            height
+            rotation
+          }
+        }
       }
       ... on ComponentSharedSpecialComponent {
         __typename

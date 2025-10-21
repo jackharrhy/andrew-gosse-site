@@ -7,11 +7,19 @@ export interface SharedMedia extends Struct.ComponentSchema {
     icon: 'file-video';
   };
   attributes: {
+    adornments: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::adornment.adornment'
+    >;
     border: Schema.Attribute.String;
+    bottom: Schema.Attribute.String;
     file: Schema.Attribute.Media<'images' | 'files' | 'videos'> &
       Schema.Attribute.Required;
     height: Schema.Attribute.String;
+    left: Schema.Attribute.String;
+    right: Schema.Attribute.String;
     rotation: Schema.Attribute.Float;
+    top: Schema.Attribute.String;
     width: Schema.Attribute.String;
   };
 }

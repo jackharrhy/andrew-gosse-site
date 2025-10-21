@@ -34,13 +34,38 @@ const generateStyle = (block: ComponentSharedMedia) => {
   {
     blocks.map((block) =>
       block.__typename === "ComponentSharedMedia" ? (
-        <img
-          src={`${externalStrapiUrl}${block.file!.url}`}
-          alt={block.file!.alternativeText}
-          style={generateStyle(block)}
-        />
+        Array.isArray(block.adornments) && block.adornments.length > 0 ? (
+          <div style={generateStyle(block)} class="relative not-prose">
+            <img
+              src={`${externalStrapiUrl}${block.file!.url}`}
+              alt={block.file!.alternativeText}
+            />
+            {block.adornments.map((adornment, idx) => (
+              <img
+                src={`${externalStrapiUrl}${adornment!.media!.file.url}`}
+                alt={adornment!.media!.file.alternativeText}
+                style={{
+                  position: "absolute",
+                  left: adornment!.media!.left ?? 0,
+                  top: adornment!.media!.top ?? 0,
+                  width: adornment!.media!.width,
+                  height: adornment!.media!.height,
+                  ...(adornment!.media!.rotation !== undefined
+                    ? { transform: `rotate(${adornment!.media!.rotation}deg)` }
+                    : {}),
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <img
+            src={`${externalStrapiUrl}${block.file!.url}`}
+            alt={block.file!.alternativeText}
+            style={generateStyle(block)}
+          />
+        )
       ) : block.__typename === "ComponentSharedRichText" ? (
-        <div set:html={marked.parse(block.body!)} />
+        <Fragment set:html={marked.parse(block.body!)} />
       ) : block.__typename === "ComponentSharedSpecialComponent" &&
         block.type === "riso_colors" ? (
         <RisoColors />

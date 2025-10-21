@@ -26,6 +26,19 @@ export const HomepageQuery = graphql(`
           height
           rotation
           border
+          adornments {
+            media {
+              file {
+                url
+                alternativeText
+              }
+              left
+              top
+              width
+              height
+              rotation
+            }
+          }
         }
         ... on ComponentSharedSpecialComponent {
           __typename
@@ -102,6 +115,19 @@ export const PagesQuery = graphql(`
           height
           rotation
           border
+          adornments {
+            media {
+              file {
+                url
+                alternativeText
+              }
+              left
+              top
+              width
+              height
+              rotation
+            }
+          }
         }
         ... on ComponentSharedSpecialComponent {
           __typename
