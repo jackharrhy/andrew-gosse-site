@@ -46,8 +46,10 @@ const generateStyle = (block: ComponentSharedMedia) => {
                 alt={adornment!.media!.file.alternativeText}
                 style={{
                   position: "absolute",
-                  left: adornment!.media!.left ?? 0,
-                  top: adornment!.media!.top ?? 0,
+                  left: adornment!.media!.left,
+                  top: adornment!.media!.top,
+                  bottom: adornment!.media!.bottom,
+                  right: adornment!.media!.right,
                   width: adornment!.media!.width,
                   height: adornment!.media!.height,
                   ...(adornment!.media!.rotation !== undefined

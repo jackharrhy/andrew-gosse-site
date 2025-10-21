@@ -104,14 +104,14 @@ export type ComponentSharedMedia = {
   adornments: Array<Maybe<Adornment>>;
   adornments_connection?: Maybe<AdornmentRelationResponseCollection>;
   border?: Maybe<Scalars["String"]["output"]>;
-  bottom?: Maybe<Scalars["Float"]["output"]>;
+  bottom?: Maybe<Scalars["String"]["output"]>;
   file: UploadFile;
   height?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
-  left?: Maybe<Scalars["Float"]["output"]>;
-  right?: Maybe<Scalars["Float"]["output"]>;
+  left?: Maybe<Scalars["String"]["output"]>;
+  right?: Maybe<Scalars["String"]["output"]>;
   rotation?: Maybe<Scalars["Float"]["output"]>;
-  top?: Maybe<Scalars["Float"]["output"]>;
+  top?: Maybe<Scalars["String"]["output"]>;
   width?: Maybe<Scalars["String"]["output"]>;
 };
 
@@ -131,28 +131,28 @@ export type ComponentSharedMediaFiltersInput = {
   adornments?: InputMaybe<AdornmentFiltersInput>;
   and?: InputMaybe<Array<InputMaybe<ComponentSharedMediaFiltersInput>>>;
   border?: InputMaybe<StringFilterInput>;
-  bottom?: InputMaybe<FloatFilterInput>;
+  bottom?: InputMaybe<StringFilterInput>;
   height?: InputMaybe<StringFilterInput>;
-  left?: InputMaybe<FloatFilterInput>;
+  left?: InputMaybe<StringFilterInput>;
   not?: InputMaybe<ComponentSharedMediaFiltersInput>;
   or?: InputMaybe<Array<InputMaybe<ComponentSharedMediaFiltersInput>>>;
-  right?: InputMaybe<FloatFilterInput>;
+  right?: InputMaybe<StringFilterInput>;
   rotation?: InputMaybe<FloatFilterInput>;
-  top?: InputMaybe<FloatFilterInput>;
+  top?: InputMaybe<StringFilterInput>;
   width?: InputMaybe<StringFilterInput>;
 };
 
 export type ComponentSharedMediaInput = {
   adornments?: InputMaybe<Array<InputMaybe<Scalars["ID"]["input"]>>>;
   border?: InputMaybe<Scalars["String"]["input"]>;
-  bottom?: InputMaybe<Scalars["Float"]["input"]>;
+  bottom?: InputMaybe<Scalars["String"]["input"]>;
   file?: InputMaybe<Scalars["ID"]["input"]>;
   height?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["ID"]["input"]>;
-  left?: InputMaybe<Scalars["Float"]["input"]>;
-  right?: InputMaybe<Scalars["Float"]["input"]>;
+  left?: InputMaybe<Scalars["String"]["input"]>;
+  right?: InputMaybe<Scalars["String"]["input"]>;
   rotation?: InputMaybe<Scalars["Float"]["input"]>;
-  top?: InputMaybe<Scalars["Float"]["input"]>;
+  top?: InputMaybe<Scalars["String"]["input"]>;
   width?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -1395,8 +1395,10 @@ export type HomepageQuery = {
             __typename?: "Adornment";
             media?: {
               __typename?: "ComponentSharedMedia";
-              left?: number | null;
-              top?: number | null;
+              left?: string | null;
+              top?: string | null;
+              bottom?: string | null;
+              right?: string | null;
               width?: string | null;
               height?: string | null;
               rotation?: number | null;
@@ -1478,8 +1480,10 @@ export type PagesQuery = {
             __typename?: "Adornment";
             media?: {
               __typename?: "ComponentSharedMedia";
-              left?: number | null;
-              top?: number | null;
+              left?: string | null;
+              top?: string | null;
+              bottom?: string | null;
+              right?: string | null;
               width?: string | null;
               height?: string | null;
               rotation?: number | null;
@@ -1556,6 +1560,8 @@ export const HomepageDocument = new TypedDocumentString(`
             }
             left
             top
+            bottom
+            right
             width
             height
             rotation
@@ -1633,6 +1639,8 @@ export const PagesDocument = new TypedDocumentString(`
             }
             left
             top
+            bottom
+            right
             width
             height
             rotation

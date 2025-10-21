@@ -34,6 +34,8 @@ export const HomepageQuery = graphql(`
               }
               left
               top
+              bottom
+              right
               width
               height
               rotation
@@ -123,6 +125,8 @@ export const PagesQuery = graphql(`
               }
               left
               top
+              bottom
+              right
               width
               height
               rotation
