@@ -24,21 +24,28 @@ export const HomepageQuery = graphql(`
           }
           width
           height
+          top
+          right
+          bottom
+          left
           rotation
           border
+          filter
           adornments {
             media {
               file {
                 url
                 alternativeText
               }
-              left
-              top
-              bottom
-              right
               width
               height
+              top
+              right
+              bottom
+              left
               rotation
+              border
+              filter
             }
           }
         }
@@ -122,21 +129,28 @@ export const PagesQuery = graphql(`
           }
           width
           height
+          top
+          right
+          bottom
+          left
           rotation
           border
+          filter
           adornments {
             media {
               file {
                 url
                 alternativeText
               }
-              left
-              top
-              bottom
-              right
               width
               height
+              top
+              right
+              bottom
+              left
               rotation
+              border
+              filter
             }
           }
         }

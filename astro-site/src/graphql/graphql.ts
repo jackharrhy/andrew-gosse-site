@@ -106,6 +106,7 @@ export type ComponentSharedMedia = {
   border?: Maybe<Scalars["String"]["output"]>;
   bottom?: Maybe<Scalars["String"]["output"]>;
   file: UploadFile;
+  filter?: Maybe<Scalars["String"]["output"]>;
   height?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
   left?: Maybe<Scalars["String"]["output"]>;
@@ -132,6 +133,7 @@ export type ComponentSharedMediaFiltersInput = {
   and?: InputMaybe<Array<InputMaybe<ComponentSharedMediaFiltersInput>>>;
   border?: InputMaybe<StringFilterInput>;
   bottom?: InputMaybe<StringFilterInput>;
+  filter?: InputMaybe<StringFilterInput>;
   height?: InputMaybe<StringFilterInput>;
   left?: InputMaybe<StringFilterInput>;
   not?: InputMaybe<ComponentSharedMediaFiltersInput>;
@@ -147,6 +149,7 @@ export type ComponentSharedMediaInput = {
   border?: InputMaybe<Scalars["String"]["input"]>;
   bottom?: InputMaybe<Scalars["String"]["input"]>;
   file?: InputMaybe<Scalars["ID"]["input"]>;
+  filter?: InputMaybe<Scalars["String"]["input"]>;
   height?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["ID"]["input"]>;
   left?: InputMaybe<Scalars["String"]["input"]>;
@@ -1399,8 +1402,13 @@ export type HomepageQuery = {
           __typename: "ComponentSharedMedia";
           width?: string | null;
           height?: string | null;
+          top?: string | null;
+          right?: string | null;
+          bottom?: string | null;
+          left?: string | null;
           rotation?: number | null;
           border?: string | null;
+          filter?: string | null;
           file: {
             __typename?: "UploadFile";
             url: string;
@@ -1410,13 +1418,15 @@ export type HomepageQuery = {
             __typename?: "Adornment";
             media?: {
               __typename?: "ComponentSharedMedia";
-              left?: string | null;
-              top?: string | null;
-              bottom?: string | null;
-              right?: string | null;
               width?: string | null;
               height?: string | null;
+              top?: string | null;
+              right?: string | null;
+              bottom?: string | null;
+              left?: string | null;
               rotation?: number | null;
+              border?: string | null;
+              filter?: string | null;
               file: {
                 __typename?: "UploadFile";
                 url: string;
@@ -1491,8 +1501,13 @@ export type PagesQuery = {
           __typename: "ComponentSharedMedia";
           width?: string | null;
           height?: string | null;
+          top?: string | null;
+          right?: string | null;
+          bottom?: string | null;
+          left?: string | null;
           rotation?: number | null;
           border?: string | null;
+          filter?: string | null;
           file: {
             __typename?: "UploadFile";
             url: string;
@@ -1502,13 +1517,15 @@ export type PagesQuery = {
             __typename?: "Adornment";
             media?: {
               __typename?: "ComponentSharedMedia";
-              left?: string | null;
-              top?: string | null;
-              bottom?: string | null;
-              right?: string | null;
               width?: string | null;
               height?: string | null;
+              top?: string | null;
+              right?: string | null;
+              bottom?: string | null;
+              left?: string | null;
               rotation?: number | null;
+              border?: string | null;
+              filter?: string | null;
               file: {
                 __typename?: "UploadFile";
                 url: string;
@@ -1572,21 +1589,28 @@ export const HomepageDocument = new TypedDocumentString(`
         }
         width
         height
+        top
+        right
+        bottom
+        left
         rotation
         border
+        filter
         adornments {
           media {
             file {
               url
               alternativeText
             }
-            left
-            top
-            bottom
-            right
             width
             height
+            top
+            right
+            bottom
+            left
             rotation
+            border
+            filter
           }
         }
       }
@@ -1658,21 +1682,28 @@ export const PagesDocument = new TypedDocumentString(`
         }
         width
         height
+        top
+        right
+        bottom
+        left
         rotation
         border
+        filter
         adornments {
           media {
             file {
               url
               alternativeText
             }
-            left
-            top
-            bottom
-            right
             width
             height
+            top
+            right
+            bottom
+            left
             rotation
+            border
+            filter
           }
         }
       }

@@ -17,6 +17,12 @@ interface Props {
 
 const { blocks } = Astro.props;
 
+const generateFilterStyle = (block: ComponentSharedMedia) => {
+  return {
+    filter: block.filter!,
+  };
+};
+
 const generateStyle = (block: ComponentSharedMedia) => {
   const rotation = typeof block.rotation === "number" ? block.rotation : 0;
   const border = typeof block.border === "string" ? block.border : "none";
@@ -39,6 +45,7 @@ const generateStyle = (block: ComponentSharedMedia) => {
             <img
               src={`${externalStrapiUrl}${block.file!.url}`}
               alt={block.file!.alternativeText}
+              style={generateFilterStyle(block)}
             />
             {block.adornments.map((adornment, idx) => (
               <img
@@ -55,6 +62,9 @@ const generateStyle = (block: ComponentSharedMedia) => {
                   ...(adornment!.media!.rotation !== undefined
                     ? { transform: `rotate(${adornment!.media!.rotation}deg)` }
                     : {}),
+                  ...(adornment!.media!.filter !== undefined
+                    ? { filter: adornment!.media!.filter }
+                    : {}),
                 }}
               />
             ))}
@@ -63,7 +73,10 @@ const generateStyle = (block: ComponentSharedMedia) => {
           <img
             src={`${externalStrapiUrl}${block.file!.url}`}
             alt={block.file!.alternativeText}
-            style={generateStyle(block)}
+            style={{
+              ...generateStyle(block),
+              ...generateFilterStyle(block),
+            }}
           />
         )
       ) : block.__typename === "ComponentSharedRichText" ? (
@@ -75,3 +88,9 @@ const generateStyle = (block: ComponentSharedMedia) => {
     )
   }
 </article>
+
+<style>
+  img {
+    height: 100%;
+  }
+</style>

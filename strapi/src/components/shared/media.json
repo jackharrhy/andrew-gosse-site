@@ -25,6 +25,9 @@
     "border": {
       "type": "string"
     },
+    "filter": {
+      "type": "string"
+    },
     "rotation": {
       "type": "float"
     },
