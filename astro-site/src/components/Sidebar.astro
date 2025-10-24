@@ -18,6 +18,7 @@ const sidebar = Astro.props.sidebar!;
       class="w-40 h-40 mx-auto border-black border-b-2"
     />
   </a>
+
   <div class="flex flex-col gap-3">
     {
       sidebar.categories!.map((category) => (
@@ -48,6 +49,13 @@ const sidebar = Astro.props.sidebar!;
       ))
     }
   </div>
+  <a
+    href="/contact"
+    class="bg-link text-white font-semibold px-4 py-2 text-center hover:bg-link/90 transition-colors duration-150 mx-auto w-full italic my-4"
+    style="letter-spacing: 0.02em;"
+  >
+    Contact Me
+  </a>
   <div class="flex flex-col gap-2">
     {
       sidebar.links!.map((link) => (
