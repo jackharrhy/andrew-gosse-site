@@ -13,14 +13,14 @@
   },
   "dependencies": {
     "@astrojs/node": "^9.5.0",
-    "@tailwindcss/vite": "^4.1.14",
-    "astro": "^5.14.6",
+    "@tailwindcss/vite": "^4.1.16",
+    "astro": "^5.15.1",
     "astro-meta-tags": "^0.4.0",
     "marked": "^16.4.1",
-    "tailwindcss": "^4.1.14"
+    "tailwindcss": "^4.1.16"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^6.0.0",
+    "@graphql-codegen/cli": "^6.0.1",
     "@graphql-codegen/schema-ast": "^5.0.0",
     "@tailwindcss/typography": "^0.5.19",
     "npm-check-updates": "^19.1.1"

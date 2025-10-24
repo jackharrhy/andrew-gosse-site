@@ -18,6 +18,8 @@ export interface SharedMedia extends Struct.ComponentSchema {
     filter: Schema.Attribute.String;
     height: Schema.Attribute.String;
     left: Schema.Attribute.String;
+    margin: Schema.Attribute.String;
+    padding: Schema.Attribute.String;
     right: Schema.Attribute.String;
     rotation: Schema.Attribute.Float;
     top: Schema.Attribute.String;

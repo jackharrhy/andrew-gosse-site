@@ -26,12 +26,14 @@ const generateFilterStyle = (block: ComponentSharedMedia) => {
 const generateStyle = (block: ComponentSharedMedia) => {
   const rotation = typeof block.rotation === "number" ? block.rotation : 0;
   const border = typeof block.border === "string" ? block.border : "none";
+  const margin = typeof block.margin === "string" ? block.margin : "0 auto";
   return {
     transform: `rotate(${rotation}deg)`,
-    border: border,
+    border,
     width: block.width,
     height: block.height,
-    margin: "0 auto",
+    padding: block.padding,
+    margin,
   };
 };
 ---
@@ -59,6 +61,8 @@ const generateStyle = (block: ComponentSharedMedia) => {
                   right: adornment!.media!.right,
                   width: adornment!.media!.width,
                   height: adornment!.media!.height,
+                  padding: adornment!.media!.padding,
+                  margin: adornment!.media!.margin,
                   ...(adornment!.media!.rotation !== undefined
                     ? { transform: `rotate(${adornment!.media!.rotation}deg)` }
                     : {}),

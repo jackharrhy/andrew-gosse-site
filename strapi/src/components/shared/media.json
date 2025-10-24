@@ -36,6 +36,12 @@
       "relation": "oneToMany",
       "target": "api::adornment.adornment"
     },
+    "padding": {
+      "type": "string"
+    },
+    "margin": {
+      "type": "string"
+    },
     "top": {
       "type": "string"
     },

@@ -110,6 +110,8 @@ export type ComponentSharedMedia = {
   height?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
   left?: Maybe<Scalars["String"]["output"]>;
+  margin?: Maybe<Scalars["String"]["output"]>;
+  padding?: Maybe<Scalars["String"]["output"]>;
   right?: Maybe<Scalars["String"]["output"]>;
   rotation?: Maybe<Scalars["Float"]["output"]>;
   top?: Maybe<Scalars["String"]["output"]>;
@@ -136,8 +138,10 @@ export type ComponentSharedMediaFiltersInput = {
   filter?: InputMaybe<StringFilterInput>;
   height?: InputMaybe<StringFilterInput>;
   left?: InputMaybe<StringFilterInput>;
+  margin?: InputMaybe<StringFilterInput>;
   not?: InputMaybe<ComponentSharedMediaFiltersInput>;
   or?: InputMaybe<Array<InputMaybe<ComponentSharedMediaFiltersInput>>>;
+  padding?: InputMaybe<StringFilterInput>;
   right?: InputMaybe<StringFilterInput>;
   rotation?: InputMaybe<FloatFilterInput>;
   top?: InputMaybe<StringFilterInput>;
@@ -153,6 +157,8 @@ export type ComponentSharedMediaInput = {
   height?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["ID"]["input"]>;
   left?: InputMaybe<Scalars["String"]["input"]>;
+  margin?: InputMaybe<Scalars["String"]["input"]>;
+  padding?: InputMaybe<Scalars["String"]["input"]>;
   right?: InputMaybe<Scalars["String"]["input"]>;
   rotation?: InputMaybe<Scalars["Float"]["input"]>;
   top?: InputMaybe<Scalars["String"]["input"]>;
@@ -1402,6 +1408,8 @@ export type HomepageQuery = {
           __typename: "ComponentSharedMedia";
           width?: string | null;
           height?: string | null;
+          padding?: string | null;
+          margin?: string | null;
           top?: string | null;
           right?: string | null;
           bottom?: string | null;
@@ -1420,6 +1428,8 @@ export type HomepageQuery = {
               __typename?: "ComponentSharedMedia";
               width?: string | null;
               height?: string | null;
+              padding?: string | null;
+              margin?: string | null;
               top?: string | null;
               right?: string | null;
               bottom?: string | null;
@@ -1501,6 +1511,8 @@ export type PagesQuery = {
           __typename: "ComponentSharedMedia";
           width?: string | null;
           height?: string | null;
+          padding?: string | null;
+          margin?: string | null;
           top?: string | null;
           right?: string | null;
           bottom?: string | null;
@@ -1519,6 +1531,8 @@ export type PagesQuery = {
               __typename?: "ComponentSharedMedia";
               width?: string | null;
               height?: string | null;
+              padding?: string | null;
+              margin?: string | null;
               top?: string | null;
               right?: string | null;
               bottom?: string | null;
@@ -1589,6 +1603,8 @@ export const HomepageDocument = new TypedDocumentString(`
         }
         width
         height
+        padding
+        margin
         top
         right
         bottom
@@ -1604,6 +1620,8 @@ export const HomepageDocument = new TypedDocumentString(`
             }
             width
             height
+            padding
+            margin
             top
             right
             bottom
@@ -1682,6 +1700,8 @@ export const PagesDocument = new TypedDocumentString(`
         }
         width
         height
+        padding
+        margin
         top
         right
         bottom
@@ -1697,6 +1717,8 @@ export const PagesDocument = new TypedDocumentString(`
             }
             width
             height
+            padding
+            margin
             top
             right
             bottom

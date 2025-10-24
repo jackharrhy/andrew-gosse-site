@@ -24,6 +24,8 @@ export const HomepageQuery = graphql(`
           }
           width
           height
+          padding
+          margin
           top
           right
           bottom
@@ -39,6 +41,8 @@ export const HomepageQuery = graphql(`
               }
               width
               height
+              padding
+              margin
               top
               right
               bottom
@@ -129,6 +133,8 @@ export const PagesQuery = graphql(`
           }
           width
           height
+          padding
+          margin
           top
           right
           bottom
@@ -144,6 +150,8 @@ export const PagesQuery = graphql(`
               }
               width
               height
+              padding
+              margin
               top
               right
               bottom
