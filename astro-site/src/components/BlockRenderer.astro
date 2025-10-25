@@ -31,7 +31,8 @@ const generateStyle = (block: ComponentSharedMedia) => {
     transform: `rotate(${rotation}deg)`,
     border,
     width: block.width,
-    height: block.height,
+    height: "100%",
+    maxHeight: block.height,
     padding: block.padding,
     margin,
   };
@@ -47,7 +48,10 @@ const generateStyle = (block: ComponentSharedMedia) => {
             <img
               src={`${externalStrapiUrl}${block.file!.url}`}
               alt={block.file!.alternativeText}
-              style={generateFilterStyle(block)}
+              style={{
+                ...generateFilterStyle(block),
+                maxHeight: block.height,
+              }}
             />
             {block.adornments.map((adornment, idx) => (
               <img
