@@ -10,7 +10,7 @@ interface Props {
 const sidebar = Astro.props.sidebar!;
 ---
 
-<nav class="flex flex-col gap-4 w-[12rem] shrink-0">
+<nav class="flex flex-col gap-4 w-full lg:w-48 shrink-0">
   <a href="/" class="pb-2">
     <img
       src={`${externalStrapiUrl}${sidebar.topImage!.url}`}
@@ -18,66 +18,93 @@ const sidebar = Astro.props.sidebar!;
       class="w-40 h-40 mx-auto border-black border-b-2"
     />
   </a>
-
-  <div class="flex flex-col gap-3">
-    {
-      sidebar.categories!.map((category) => (
-        <div class="flex flex-col gap-1.5">
-          <p
-            class="sidebar-title text-lg font-bold min-h-8 mt-2 mb-1"
-            style={
-              category!.backgroundImage?.url
-                ? `--background-image: url('${`${externalStrapiUrl}${category!.backgroundImage.url}`}')`
-                : undefined
-            }
-          >
-            {category!.categoryTitle}
-          </p>
-          <ul class="flex flex-col gap-2">
-            {category!.items.map((item) => (
-              <li class="list-none">
-                <a
-                  href={`/${item!.page!.slug}`}
-                  class="hover:text-link hover:underline"
-                >
-                  {item!.text}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))
-    }
-  </div>
-  <a
-    href="/contact"
-    class="bg-link text-white font-semibold px-4 py-2 text-center hover:bg-link/90 transition-colors duration-150 mx-auto w-full italic my-4"
-    style="letter-spacing: 0.02em;"
-  >
-    Contact Me
-  </a>
-  <div class="flex flex-col gap-2">
-    {
-      sidebar.links!.map((link) => (
-        <a
-          href={link!.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="hover:text-link hover:underline"
+  <details class="group max-lg:w-full lg:block" open>
+    <summary
+      class="max-lg:list-none max-lg:select-none max-lg:block lg:hidden cursor-pointer text-lg font-bold mb-4 px-4 py-2 bg-link text-white hover:bg-link/90 transition-colors duration-150 [&::-webkit-details-marker]:hidden marker:hidden"
+    >
+      <span class="flex items-center justify-between">
+        <span>Menu</span>
+        <span
+          class="inline-block transition-transform duration-300 ease-in-out group-open:rotate-180"
+          aria-hidden="true">▼</span
         >
-          {link!.service}
-        </a>
-      ))
-    }
-  </div>
+      </span>
+    </summary>
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-3">
+        {
+          sidebar.categories!.map((category) => (
+            <div class="flex flex-col gap-1.5">
+              <p
+                class="text-lg font-bold min-h-8 mt-2 mb-1 brightness-[1.4] bg-contain bg-no-repeat text-black"
+                style={
+                  category!.backgroundImage?.url
+                    ? `background-image: url('${`${externalStrapiUrl}${category!.backgroundImage.url}`}')`
+                    : undefined
+                }
+              >
+                {category!.categoryTitle}
+              </p>
+              <ul class="flex flex-col gap-2">
+                {category!.items.map((item) => (
+                  <li class="list-none">
+                    <a
+                      href={`/${item!.page!.slug}`}
+                      class="hover:text-link hover:underline"
+                    >
+                      {item!.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+      <a
+        href="/contact"
+        class="bg-link text-white font-semibold px-4 py-2 text-center hover:bg-link/90 transition-colors duration-150 mx-auto w-full italic my-4 tracking-[0.02em]"
+      >
+        Contact Me
+      </a>
+      <div class="flex flex-col gap-2">
+        {
+          sidebar.links!.map((link) => (
+            <a
+              href={link!.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hover:text-link hover:underline"
+            >
+              {link!.service}
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </details>
 </nav>
 
-<style>
-  .sidebar-title {
-    background-image: var(--background-image);
-    filter: brightness(1.4);
-    background-size: contain;
-    background-repeat: no-repeat;
-    color: black;
+<script>
+  const details = document.querySelector("details");
+  function isSmallScreen() {
+    return window.matchMedia("(max-width: 1024px)").matches;
   }
-</style>
+
+  if (isSmallScreen() && details) {
+    details.open = false;
+  }
+
+  let lastIsLarge = window.matchMedia("(min-width: 1025px)").matches;
+
+  window.addEventListener("resize", () => {
+    if (!details) return;
+    const isLarge = window.matchMedia("(min-width: 1025px)").matches;
+    if (isLarge) {
+      details.open = true;
+    } else if (lastIsLarge && !isLarge) {
+      details.open = false;
+    }
+    lastIsLarge = isLarge;
+  });
+</script>
