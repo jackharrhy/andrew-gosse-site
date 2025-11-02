@@ -28,13 +28,25 @@ const generateStyle = (block: ComponentSharedMedia) => {
   const border = typeof block.border === "string" ? block.border : "none";
   const margin = typeof block.margin === "string" ? block.margin : "0 auto";
   return {
+    left: block.left,
+    top: block.top,
+    bottom: block.bottom,
+    right: block.right,
+    filter: block.filter,
     transform: `rotate(${rotation}deg)`,
     border,
     width: block.width,
-    height: "100%",
+    height: "auto",
     maxHeight: block.height,
     padding: block.padding,
     margin,
+  };
+};
+
+const generateAdornmentStyle = (media: ComponentSharedMedia) => {
+  return {
+    position: "absolute",
+    ...generateStyle(media),
   };
 };
 ---
@@ -44,36 +56,24 @@ const generateStyle = (block: ComponentSharedMedia) => {
     blocks.map((block) =>
       block.__typename === "ComponentSharedMedia" ? (
         Array.isArray(block.adornments) && block.adornments.length > 0 ? (
-          <div style={generateStyle(block)} class="relative not-prose">
+          <div
+            style={{ ...generateStyle(block), border: undefined }}
+            class="relative not-prose"
+          >
             <img
               src={`${externalStrapiUrl}${block.file!.url}`}
               alt={block.file!.alternativeText}
               style={{
                 ...generateFilterStyle(block),
                 maxHeight: block.height,
+                border: block.border,
               }}
             />
             {block.adornments.map((adornment, idx) => (
               <img
                 src={`${externalStrapiUrl}${adornment!.media!.file.url}`}
                 alt={adornment!.media!.file.alternativeText}
-                style={{
-                  position: "absolute",
-                  left: adornment!.media!.left,
-                  top: adornment!.media!.top,
-                  bottom: adornment!.media!.bottom,
-                  right: adornment!.media!.right,
-                  width: adornment!.media!.width,
-                  height: adornment!.media!.height,
-                  padding: adornment!.media!.padding,
-                  margin: adornment!.media!.margin,
-                  ...(adornment!.media!.rotation !== undefined
-                    ? { transform: `rotate(${adornment!.media!.rotation}deg)` }
-                    : {}),
-                  ...(adornment!.media!.filter !== undefined
-                    ? { filter: adornment!.media!.filter }
-                    : {}),
-                }}
+                style={generateAdornmentStyle(adornment!.media!)}
               />
             ))}
           </div>
