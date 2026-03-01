@@ -33,11 +33,24 @@ const generateStyle = (block: ComponentSharedMedia) => {
     bottom: block.bottom,
     right: block.right,
     filter: block.filter,
-    transform: `rotate(${rotation}deg)`,
+    transform: rotation !== 0 ? `rotate(${rotation}deg)` : undefined,
     border,
     width: block.width,
     height: "auto",
     maxHeight: block.height,
+    padding: block.padding,
+    margin,
+  };
+};
+
+// Style for the container wrapper (doesn't need positioning props)
+const generateContainerStyle = (block: ComponentSharedMedia) => {
+  const rotation = typeof block.rotation === "number" ? block.rotation : 0;
+  const margin = typeof block.margin === "string" ? block.margin : "0 auto";
+  return {
+    transform: rotation !== 0 ? `rotate(${rotation}deg)` : undefined,
+    width: block.width,
+    maxWidth: "100%",
     padding: block.padding,
     margin,
   };
@@ -57,8 +70,8 @@ const generateAdornmentStyle = (media: ComponentSharedMedia) => {
       block.__typename === "ComponentSharedMedia" ? (
         Array.isArray(block.adornments) && block.adornments.length > 0 ? (
           <div
-            style={{ ...generateStyle(block), border: undefined }}
-            class="relative not-prose"
+            style={generateContainerStyle(block)}
+            class="image-with-adornments relative not-prose"
           >
             <img
               src={`${externalStrapiUrl}${block.file!.url}`}
@@ -98,7 +111,33 @@ const generateAdornmentStyle = (media: ComponentSharedMedia) => {
 </article>
 
 <style>
+  /* Use max-width instead of height: 100% to prevent Safari stretching */
   img {
-    height: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Container for images with adornments needs proper sizing for Safari */
+  .image-with-adornments {
+    display: block;
+    max-width: 100%;
+    /* Prevent flex stretching in Safari */
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
+
+  /* Main image establishes the container size */
+  .image-with-adornments > img:first-child {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    /* Ensure image respects its natural aspect ratio */
+    object-fit: contain;
+  }
+
+  /* Adornments should not affect layout */
+  .image-with-adornments > img:not(:first-child) {
+    pointer-events: none;
+    max-width: none; /* Allow adornments to overflow if needed */
   }
 </style>

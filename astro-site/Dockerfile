@@ -1,4 +1,4 @@
-FROM node:lts-alpine AS base
+FROM platformatic/node-caged:alpine AS base
 WORKDIR /app
 
 COPY package.json package-lock.json ./
