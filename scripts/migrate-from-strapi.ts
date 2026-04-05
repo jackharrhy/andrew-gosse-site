@@ -1,0 +1,642 @@
+// scripts/migrate-from-strapi.ts
+/**
+ * One-time migration script: Strapi SQLite → EmDash
+ *
+ * Reads from:
+ *   ../tmp/backups/andrewsite_strapi_data/data.db
+ *   ../tmp/backups/andrewsite_strapi_uploads/
+ *
+ * Writes to EmDash running at http://localhost:4321
+ *
+ * Run with: npm run migrate (from scripts/ directory)
+ * EmDash dev server must be running: cd astro-site && npm run dev
+ */
+
+import Database from "better-sqlite3";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, "..");
+
+const DB_PATH = path.join(ROOT, "tmp/backups/andrewsite_strapi_data/data.db");
+const UPLOADS_PATH = path.join(ROOT, "tmp/backups/andrewsite_strapi_uploads");
+const EMDASH_URL = "http://localhost:4321";
+const EMDASH_API = `${EMDASH_URL}/_emdash/api`;
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface StrapiFile {
+  id: number;
+  name: string;
+  url: string;
+  alternativeText?: string | null;
+}
+
+interface StrapiMediaComponent {
+  id: number;
+  width?: string | null;
+  height?: string | null;
+  border?: string | null;
+  rotation?: number | null;
+  top?: string | null;
+  bottom?: string | null;
+  left?: string | null;
+  right?: string | null;
+  filter?: string | null;
+  padding?: string | null;
+  margin?: string | null;
+}
+
+interface CmpRow {
+  entity_id: number;
+  cmp_id: number;
+  component_type: string;
+  field: string;
+  order: number;
+}
+
+// ─── Database setup ───────────────────────────────────────────────────────────
+
+const db = new Database(DB_PATH, { readonly: true });
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+async function getSessionCookie(): Promise<string> {
+  const res = await fetch(`${EMDASH_API}/auth/dev-bypass`, { method: "POST" });
+  const setCookie = res.headers.get("set-cookie");
+  if (!setCookie) {
+    throw new Error(
+      "No session cookie returned from dev bypass. Is EmDash running in dev mode?"
+    );
+  }
+  return setCookie.split(";")[0];
+}
+
+// ─── Media upload ─────────────────────────────────────────────────────────────
+
+const RESIZED_PREFIXES = ["large_", "medium_", "small_", "thumbnail_"];
+
+function isResizedVariant(filename: string): boolean {
+  return RESIZED_PREFIXES.some((p) => filename.startsWith(p));
+}
+
+async function uploadAllMedia(cookie: string): Promise<Map<string, string>> {
+  const urlMap = new Map<string, string>();
+
+  const files = fs.readdirSync(UPLOADS_PATH).filter((f) => !isResizedVariant(f));
+  console.log(`Uploading ${files.length} original media files...`);
+
+  for (const filename of files) {
+    const filePath = path.join(UPLOADS_PATH, filename);
+    const stat = fs.statSync(filePath);
+    if (!stat.isFile()) continue;
+
+    const strapiPath = `/uploads/${filename}`;
+
+    const strapiFile = db
+      .prepare<[string], StrapiFile>(
+        "SELECT id, name, url, alternative_text as alternativeText FROM files WHERE url = ?"
+      )
+      .get(strapiPath);
+
+    const formData = new FormData();
+    const blob = new Blob([fs.readFileSync(filePath)]);
+    formData.append("file", blob, filename);
+    if (strapiFile?.alternativeText) {
+      formData.append("altText", strapiFile.alternativeText);
+    }
+
+    const res = await fetch(`${EMDASH_API}/media`, {
+      method: "POST",
+      headers: {
+        Cookie: cookie,
+        "X-EmDash-Request": "1",
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.warn(`  ⚠ Failed to upload ${filename}: ${res.status} ${text}`);
+      continue;
+    }
+
+    const data = (await res.json()) as { url?: string };
+    if (data.url) {
+      urlMap.set(strapiPath, `${EMDASH_URL}${data.url}`);
+      console.log(`  ✓ ${filename} → ${data.url}`);
+    }
+  }
+
+  return urlMap;
+}
+
+// ─── Block reconstruction ─────────────────────────────────────────────────────
+
+function getFileForMedia(mediaId: number): StrapiFile | undefined {
+  return db
+    .prepare<[number], StrapiFile>(
+      `SELECT f.id, f.name, f.url, f.alternative_text as alternativeText
+       FROM files f
+       JOIN files_related_mph frm ON f.id = frm.file_id
+       WHERE frm.related_id = ? AND frm.related_type = 'shared.media' AND frm.field = 'file'
+       LIMIT 1`
+    )
+    .get(mediaId) ?? undefined;
+}
+
+function getAdornmentsForMedia(mediaId: number, urlMap: Map<string, string>): object[] {
+  const links = db
+    .prepare<[number], { adornment_id: number }>(
+      `SELECT adornment_id FROM components_shared_media_adornments_lnk
+       WHERE media_id = ? ORDER BY adornment_ord`
+    )
+    .all(mediaId);
+
+  return links.flatMap(({ adornment_id }) => {
+    const adornmentCmp = db
+      .prepare<[number], StrapiMediaComponent>(
+        `SELECT csm.* FROM adornments a
+         JOIN adornments_cmps ac ON ac.entity_id = a.id AND ac.component_type = 'shared.media'
+         JOIN components_shared_media csm ON csm.id = ac.cmp_id
+         WHERE a.id = ? AND a.published_at IS NOT NULL
+         LIMIT 1`
+      )
+      .get(adornment_id) ?? undefined;
+
+    if (!adornmentCmp) return [];
+
+    const file = getFileForMedia(adornmentCmp.id);
+    if (!file) return [];
+
+    const emdashUrl = urlMap.get(file.url) ?? file.url;
+    return [
+      {
+        file: { url: emdashUrl, alt: file.alternativeText ?? null },
+        width: adornmentCmp.width ?? undefined,
+        height: adornmentCmp.height ?? undefined,
+        padding: adornmentCmp.padding ?? undefined,
+        margin: adornmentCmp.margin ?? undefined,
+        top: adornmentCmp.top ?? undefined,
+        right: adornmentCmp.right ?? undefined,
+        bottom: adornmentCmp.bottom ?? undefined,
+        left: adornmentCmp.left ?? undefined,
+        rotation: adornmentCmp.rotation ?? undefined,
+        border: adornmentCmp.border ?? undefined,
+        filter: adornmentCmp.filter ?? undefined,
+      },
+    ];
+  });
+}
+
+function buildBlocks(cmps: CmpRow[], urlMap: Map<string, string>): object[] {
+  const blockCmps = cmps.filter((c) => c.field === "blocks").sort((a, b) => a.order - b.order);
+
+  return blockCmps.flatMap((cmp) => {
+    if (cmp.component_type === "shared.rich-text") {
+      const row = db
+        .prepare<[number], { body: string }>(
+          "SELECT body FROM components_shared_rich_texts WHERE id = ?"
+        )
+        .get(cmp.cmp_id);
+      if (!row) return [];
+      return [{ _type: "richText", body: row.body }];
+    }
+
+    if (cmp.component_type === "shared.media") {
+      const media = db
+        .prepare<[number], StrapiMediaComponent>(
+          "SELECT * FROM components_shared_media WHERE id = ?"
+        )
+        .get(cmp.cmp_id);
+      if (!media) return [];
+
+      const file = getFileForMedia(media.id);
+      if (!file) return [];
+
+      const emdashUrl = urlMap.get(file.url) ?? file.url;
+      const adornments = getAdornmentsForMedia(media.id, urlMap);
+
+      return [
+        {
+          _type: "media",
+          file: { url: emdashUrl, alt: file.alternativeText ?? null },
+          width: media.width ?? undefined,
+          height: media.height ?? undefined,
+          padding: media.padding ?? undefined,
+          margin: media.margin ?? undefined,
+          top: media.top ?? undefined,
+          right: media.right ?? undefined,
+          bottom: media.bottom ?? undefined,
+          left: media.left ?? undefined,
+          rotation: media.rotation ?? undefined,
+          border: media.border ?? undefined,
+          filter: media.filter ?? undefined,
+          ...(adornments.length > 0 ? { adornments } : {}),
+        },
+      ];
+    }
+
+    if (cmp.component_type === "shared.special-component") {
+      const row = db
+        .prepare<[number], { type: string }>(
+          "SELECT type FROM components_shared_special_components WHERE id = ?"
+        )
+        .get(cmp.cmp_id);
+      if (!row) return [];
+      // Strapi stores "riso-colors", we use "riso_colors"
+      return [{ _type: "specialComponent", type: row.type.replace(/-/g, "_") }];
+    }
+
+    return [];
+  });
+}
+
+function buildSeo(cmps: CmpRow[], urlMap: Map<string, string>): object | null {
+  const seoCmp = cmps.find((c) => c.field === "seo" && c.component_type === "shared.seo");
+  if (!seoCmp) return null;
+
+  const seo = db
+    .prepare<[number], { meta_title?: string | null; meta_description?: string | null }>(
+      "SELECT meta_title, meta_description FROM components_shared_seos WHERE id = ?"
+    )
+    .get(seoCmp.cmp_id);
+  if (!seo) return null;
+
+  const shareFile = db
+    .prepare<[number], StrapiFile>(
+      `SELECT f.id, f.name, f.url, f.alternative_text as alternativeText
+       FROM files f
+       JOIN files_related_mph frm ON f.id = frm.file_id
+       WHERE frm.related_id = ? AND frm.related_type = 'shared.seos' AND frm.field = 'shareImage'
+       LIMIT 1`
+    )
+    .get(seoCmp.cmp_id);
+
+  return {
+    metaTitle: seo.meta_title ?? null,
+    metaDescription: seo.meta_description ?? null,
+    shareImage: shareFile
+      ? {
+          url: urlMap.get(shareFile.url) ?? shareFile.url,
+          alt: shareFile.alternativeText ?? null,
+        }
+      : null,
+  };
+}
+
+// ─── API helpers ──────────────────────────────────────────────────────────────
+
+async function contentExists(collection: string, slug: string, cookie: string): Promise<boolean> {
+  const res = await fetch(`${EMDASH_API}/content/${collection}?status=published`, {
+    headers: { Cookie: cookie },
+  });
+  if (!res.ok) return false;
+  const data = (await res.json()) as { items?: Array<{ slug: string }> };
+  return (data.items ?? []).some((item) => item.slug === slug);
+}
+
+async function createContent(
+  collection: string,
+  payload: { slug?: string; data: object; seo?: object | null; status: string },
+  cookie: string
+): Promise<void> {
+  const res = await fetch(`${EMDASH_API}/content/${collection}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: cookie,
+      "X-EmDash-Request": "1",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(
+      `Failed to create ${collection}/${payload.slug ?? "(single)"}: ${res.status} ${text}`
+    );
+  }
+}
+
+async function publishContent(
+  collection: string,
+  slug: string,
+  cookie: string
+): Promise<void> {
+  const res = await fetch(`${EMDASH_API}/content/${collection}/${slug}`, {
+    headers: { Cookie: cookie },
+  });
+  if (!res.ok) return;
+  const data = (await res.json()) as { id?: string };
+  if (!data.id) return;
+
+  await fetch(`${EMDASH_API}/content/${collection}/${data.id}/publish`, {
+    method: "POST",
+    headers: {
+      Cookie: cookie,
+      "X-EmDash-Request": "1",
+    },
+  });
+}
+
+// ─── Seed functions ───────────────────────────────────────────────────────────
+
+async function seedSite(urlMap: Map<string, string>, cookie: string): Promise<void> {
+  console.log("\n--- Seeding site ---");
+
+  const exists = await contentExists("site", "site", cookie);
+  if (exists) {
+    console.log("  site already exists, skipping");
+    return;
+  }
+
+  const site = db
+    .prepare<[], { background_color: string }>(
+      "SELECT background_color FROM sites WHERE published_at IS NOT NULL ORDER BY id DESC LIMIT 1"
+    )
+    .get();
+
+  if (!site) {
+    console.log("  No published site found");
+    return;
+  }
+
+  await createContent(
+    "site",
+    {
+      slug: "site",
+      data: { background_color: site.background_color },
+      status: "published",
+    },
+    cookie
+  );
+  await publishContent("site", "site", cookie);
+  console.log("  ✓ site seeded");
+}
+
+async function seedPages(urlMap: Map<string, string>, cookie: string): Promise<void> {
+  console.log("\n--- Seeding pages ---");
+
+  const pages = db
+    .prepare<[], { id: number; slug: string }>(
+      `SELECT id, slug FROM pages
+       WHERE published_at IS NOT NULL
+       GROUP BY slug
+       HAVING id = MAX(id)
+       ORDER BY id`
+    )
+    .all();
+
+  console.log(`  Found ${pages.length} published pages`);
+
+  for (const page of pages) {
+    const exists = await contentExists("pages", page.slug, cookie);
+    if (exists) {
+      console.log(`  page/${page.slug} already exists, skipping`);
+      continue;
+    }
+
+    const cmps = db
+      .prepare<[number], CmpRow>(
+        `SELECT entity_id, cmp_id, component_type, field, [order]
+         FROM pages_cmps WHERE entity_id = ? ORDER BY [order]`
+      )
+      .all(page.id);
+
+    const blocks = buildBlocks(cmps, urlMap);
+    const seo = buildSeo(cmps, urlMap);
+
+    await createContent(
+      "pages",
+      {
+        slug: page.slug,
+        // title is required by EmDash's pre-seeded pages schema
+        data: { title: page.slug, page_slug: page.slug, blocks },
+        seo,
+        status: "published",
+      },
+      cookie
+    );
+    await publishContent("pages", page.slug, cookie);
+    console.log(`  ✓ page/${page.slug}`);
+  }
+}
+
+async function seedSidebar(urlMap: Map<string, string>, cookie: string): Promise<void> {
+  console.log("\n--- Seeding sidebar ---");
+
+  const exists = await contentExists("sidebar", "sidebar", cookie);
+  if (exists) {
+    console.log("  sidebar already exists, skipping");
+    return;
+  }
+
+  const sidebar = db
+    .prepare<[], { id: number }>(
+      "SELECT id FROM sidebars WHERE published_at IS NOT NULL ORDER BY id DESC LIMIT 1"
+    )
+    .get();
+
+  if (!sidebar) {
+    console.log("  No published sidebar found");
+    return;
+  }
+
+  // Top image
+  const topImageFile = db
+    .prepare<[number], StrapiFile>(
+      `SELECT f.id, f.url, f.alternative_text as alternativeText
+       FROM files f
+       JOIN files_related_mph frm ON f.id = frm.file_id
+       WHERE frm.related_id = ? AND frm.related_type = 'api::sidebar.sidebar' AND frm.field = 'topImage'
+       LIMIT 1`
+    )
+    .get(sidebar.id);
+
+  const topImage = topImageFile
+    ? {
+        url: urlMap.get(topImageFile.url) ?? topImageFile.url,
+        alt: topImageFile.alternativeText ?? null,
+      }
+    : null;
+
+  // Categories
+  const categoryCmps = db
+    .prepare<[number], { cmp_id: number; order: number }>(
+      `SELECT cmp_id, [order] FROM sidebars_cmps
+       WHERE entity_id = ? AND component_type = 'shared.sidebar-category'
+       ORDER BY [order]`
+    )
+    .all(sidebar.id);
+
+  const categories = categoryCmps
+    .map(({ cmp_id }) => {
+      const cat = db
+        .prepare<[number], { id: number; category_title: string }>(
+          "SELECT id, category_title FROM components_shared_sidebar_categories WHERE id = ?"
+        )
+        .get(cmp_id);
+
+      if (!cat) return null;
+
+      const bgFile = db
+        .prepare<[number], StrapiFile>(
+          `SELECT f.url, f.alternative_text as alternativeText
+           FROM files f
+           JOIN files_related_mph frm ON f.id = frm.file_id
+           WHERE frm.related_id = ? AND frm.related_type = 'shared.sidebar-category'
+           AND frm.field = 'backgroundImage' LIMIT 1`
+        )
+        .get(cat.id);
+
+      const itemCmps = db
+        .prepare<[number], { cmp_id: number; order: number }>(
+          `SELECT cmp_id, [order]
+           FROM components_shared_sidebar_categories_cmps
+           WHERE entity_id = ? AND component_type = 'shared.sidebar-item'
+           ORDER BY [order]`
+        )
+        .all(cat.id);
+
+      const items = itemCmps.flatMap(({ cmp_id: itemCmpId }) => {
+        const item = db
+          .prepare<[number], { id: number; text: string }>(
+            "SELECT id, text FROM components_shared_sidebar_items WHERE id = ?"
+          )
+          .get(itemCmpId);
+        if (!item) return [];
+
+        const pageLink = db
+          .prepare<[number], { slug: string }>(
+            `SELECT p.slug FROM pages p
+             JOIN components_shared_sidebar_items_page_lnk lnk ON lnk.page_id = p.id
+             WHERE lnk.sidebar_item_id = ?
+             AND p.published_at IS NOT NULL
+             ORDER BY p.id DESC LIMIT 1`
+          )
+          .get(item.id);
+        if (!pageLink) return [];
+
+        return [{ text: item.text, page: { slug: pageLink.slug } }];
+      });
+
+      return {
+        categoryTitle: cat.category_title,
+        backgroundImage: bgFile
+          ? {
+              url: urlMap.get(bgFile.url) ?? bgFile.url,
+              alt: bgFile.alternativeText ?? null,
+            }
+          : null,
+        items,
+      };
+    })
+    .filter(Boolean);
+
+  // Links
+  const linkCmps = db
+    .prepare<[number], { cmp_id: number }>(
+      `SELECT cmp_id FROM sidebars_cmps
+       WHERE entity_id = ? AND component_type = 'shared.sidebar-link'
+       ORDER BY [order]`
+    )
+    .all(sidebar.id);
+
+  const links = linkCmps.flatMap(({ cmp_id }) => {
+    const link = db
+      .prepare<[number], { service: string; url: string }>(
+        "SELECT service, url FROM components_shared_sidebar_links WHERE id = ?"
+      )
+      .get(cmp_id);
+    return link ? [link] : [];
+  });
+
+  await createContent(
+    "sidebar",
+    {
+      slug: "sidebar",
+      data: { top_image: topImage, categories, links },
+      status: "published",
+    },
+    cookie
+  );
+  await publishContent("sidebar", "sidebar", cookie);
+  console.log("  ✓ sidebar seeded");
+}
+
+async function seedHomepage(urlMap: Map<string, string>, cookie: string): Promise<void> {
+  console.log("\n--- Seeding homepage ---");
+
+  const exists = await contentExists("homepage", "homepage", cookie);
+  if (exists) {
+    console.log("  homepage already exists, skipping");
+    return;
+  }
+
+  const homepage = db
+    .prepare<[], { id: number }>(
+      "SELECT id FROM homepages WHERE published_at IS NOT NULL ORDER BY id DESC LIMIT 1"
+    )
+    .get();
+
+  if (!homepage) {
+    console.log("  No published homepage found");
+    return;
+  }
+
+  const cmps = db
+    .prepare<[number], CmpRow>(
+      `SELECT entity_id, cmp_id, component_type, field, [order]
+       FROM homepages_cmps WHERE entity_id = ? ORDER BY [order]`
+    )
+    .all(homepage.id);
+
+  const blocks = buildBlocks(cmps, urlMap);
+  const seo = buildSeo(cmps, urlMap);
+
+  await createContent(
+    "homepage",
+    { slug: "homepage", data: { blocks }, seo, status: "published" },
+    cookie
+  );
+  await publishContent("homepage", "homepage", cookie);
+  console.log("  ✓ homepage seeded");
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+async function main() {
+  console.log("Strapi → EmDash migration\n");
+  console.log(`DB: ${DB_PATH}`);
+  console.log(`Uploads: ${UPLOADS_PATH}`);
+  console.log(`EmDash: ${EMDASH_URL}\n`);
+
+  if (!fs.existsSync(DB_PATH)) {
+    throw new Error(`Strapi DB not found at ${DB_PATH}`);
+  }
+  if (!fs.existsSync(UPLOADS_PATH)) {
+    throw new Error(`Uploads not found at ${UPLOADS_PATH}`);
+  }
+
+  const cookie = await getSessionCookie();
+  console.log("✓ Authenticated with EmDash\n");
+
+  const urlMap = await uploadAllMedia(cookie);
+  console.log(`\n✓ Uploaded ${urlMap.size} media files`);
+
+  await seedSite(urlMap, cookie);
+  await seedPages(urlMap, cookie);
+  await seedSidebar(urlMap, cookie);
+  await seedHomepage(urlMap, cookie);
+
+  console.log("\n✓ Migration complete!");
+  db.close();
+}
+
+main().catch((err) => {
+  console.error("Migration failed:", err);
+  process.exit(1);
+});
