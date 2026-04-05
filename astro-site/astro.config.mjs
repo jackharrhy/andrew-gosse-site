@@ -10,6 +10,9 @@ import { sqlite } from "emdash/db";
 export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      exclude: ["@graphql-typed-document-node/core"],
+    },
   },
   adapter: node({
     mode: "standalone",
