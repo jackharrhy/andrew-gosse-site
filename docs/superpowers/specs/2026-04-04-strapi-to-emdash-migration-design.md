@@ -35,10 +35,11 @@ compose.yml
 
 **What is added:**
 - `emdash` and `emdash/astro` npm packages
+- `better-sqlite3` dev dependency (migration script only)
 - EmDash integration in `astro.config.mjs`
 - `astro-site/src/lib/fetch-emdash.ts` — typed wrappers around `getEmDashCollection`
 - Rewritten `BlockRenderer.astro` — same render logic, updated for Portable Text block shape
-- `scripts/migrate-from-strapi.ts` — one-time migration script
+- `scripts/migrate-from-strapi.ts` — one-time migration script reading from `tmp/backups/`
 - `EMDASH_SECRET` environment variable (production session signing)
 - `emdash_data/` bind mount in `compose.yml` for SQLite DB and media files
 
@@ -165,23 +166,35 @@ src={block.file.url}
 
 **Runtime:** Node.js (tsx or ts-node), run once manually before cutover.
 
-**Steps:**
+**Data source:** Reads directly from the backed-up SQLite database at `tmp/backups/andrewsite_strapi_data/data.db` using `better-sqlite3`. Media files are read from `tmp/backups/andrewsite_strapi_uploads/`. No network access to the live Strapi instance is required — the backup is the source of truth.
 
-1. **Read from Strapi** — reuse the existing GraphQL queries from `fetch-strapi.ts` against the live Strapi instance
-2. **Download media** — fetch all media files (page images, sidebar topImage, SEO share images, adornment images) to a local temp directory
-3. **Upload to EmDash** — POST each file to EmDash's media library API; build a `strapiUrl → emdashUrl` lookup map
-4. **Seed content** in dependency order:
-   - `site` (backgroundColor)
-   - `pages` (slug, seo, blocks) — must come before sidebar because sidebar category items reference page slugs
-   - `sidebar` (topImage, categories with backgroundImages and page refs, links) — image URLs remapped via lookup
-   - `homepage` (seo with shareImage, blocks converted to Portable Text) — image URLs remapped
+### SQLite schema notes
+
+Strapi's SQLite layout requires a few joins to reconstruct content:
+
+- **Published rows only** — pages, homepage, sidebar, and site all have draft duplicates. Filter with `WHERE published_at IS NOT NULL`. For pages, take the row with the highest `id` per slug among published rows (latest published wins).
+- **Blocks** — stored in `*_cmps` join tables (e.g. `pages_cmps`, `homepages_cmps`). Each row has `entity_id`, `cmp_id`, `component_type` (`shared.rich-text`, `shared.media`, `shared.special-component`), and `order`. Sort by `order` to reconstruct block sequence.
+- **Media files** — linked via `files_related_mph` (`related_id` = component id, `related_type` = `'shared.media'`, `field` = `'file'`). Join to `files` table for `url` and `name` (alt text).
+- **Adornments** — `components_shared_media_adornments_lnk` links a `media_id` → `adornment_id`. Each adornment row in `adornments` joins to `adornments_cmps` (its own `shared.media` component) → `components_shared_media` → `files_related_mph` → `files`.
+- **Sidebar** — `sidebars_cmps` holds category and link components. Category items are in `components_shared_sidebar_categories_cmps` → `components_shared_sidebar_items`, which link to pages via `components_shared_sidebar_items_page_lnk`.
+- **SEO** — stored as a `shared.seo` component in the same `*_cmps` table with `field = 'seo'`. Its share image is linked via `files_related_mph` with `related_type = 'shared.seos'`.
+
+### Steps
+
+1. **Copy media files** — copy original (non-resized) files from `tmp/backups/andrewsite_strapi_uploads/` directly into the EmDash data directory (skipping Strapi's `large_`, `medium_`, `small_`, `thumbnail_` prefixed variants — EmDash handles its own resizing). Build a `strapiPath → localPath` map (e.g. `/uploads/foo_abc123.jpg` → copied file path).
+2. **Upload to EmDash** — POST each copied file to EmDash's media library API; build a `strapiPath → emdashUrl` lookup map.
+3. **Seed content** in dependency order:
+   - `site` (query `sites` where `published_at IS NOT NULL`, take highest `id`)
+   - `pages` (query `pages` where `published_at IS NOT NULL`, deduplicate by slug taking highest `id`, reconstruct blocks via join chain)
+   - `sidebar` (query `sidebars` where `published_at IS NOT NULL`, reconstruct categories/items/links)
+   - `homepage` (query `homepages` where `published_at IS NOT NULL`, take highest `id`, reconstruct blocks)
 
 **Idempotency:** Before inserting each document, the script checks if it already exists (by slug for pages, by collection name for single types). Existing records are skipped, not duplicated. Safe to re-run.
 
-**Block conversion:** The script converts the Strapi dynamic zone array to Portable Text blocks:
-- `ComponentSharedMedia` → `{ _type: "media", file: { url: remappedUrl, alt }, ...layoutProps, adornments: [...] }`
-- `ComponentSharedRichText` → `{ _type: "richText", body }`
-- `ComponentSharedSpecialComponent` → `{ _type: "specialComponent", type }`
+**Block conversion:** The script converts Strapi component rows to Portable Text blocks:
+- `shared.media` → `{ _type: "media", file: { url: emdashUrl, alt }, ...layoutProps, adornments: [...] }`
+- `shared.rich-text` → `{ _type: "richText", body }`
+- `shared.special-component` → `{ _type: "specialComponent", type }`
 
 ## Infrastructure
 
