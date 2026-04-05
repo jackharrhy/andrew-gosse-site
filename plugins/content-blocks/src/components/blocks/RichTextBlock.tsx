@@ -47,7 +47,7 @@ export function RichTextBlock({ block, onChange }: Props) {
         </div>
         {/* Right: live preview */}
         <div
-          className="p-3 prose prose-sm max-w-none text-sm overflow-auto"
+          className="p-3 prose prose-sm max-w-none text-sm overflow-auto min-h-32"
           dangerouslySetInnerHTML={preview}
         />
       </div>
