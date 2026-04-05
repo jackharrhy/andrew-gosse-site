@@ -6,6 +6,7 @@ import metaTags from "astro-meta-tags";
 import react from "@astrojs/react";
 import emdash, { local } from "emdash/astro";
 import { sqlite } from "emdash/db";
+import { contentBlocksPlugin } from "@andrew-gosse-site/plugin-content-blocks";
 
 export default defineConfig({
   vite: {
@@ -24,6 +25,7 @@ export default defineConfig({
         directory: "./data/uploads",
         baseUrl: "/_emdash/api/media/file",
       }),
+      plugins: [contentBlocksPlugin()],
     }),
   ],
 });

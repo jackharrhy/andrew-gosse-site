@@ -11,6 +11,7 @@
     "ncu": "npm-check-updates"
   },
   "dependencies": {
+    "@andrew-gosse-site/plugin-content-blocks": "file:./plugins/content-blocks",
     "@astrojs/node": "^10.0.4",
     "@astrojs/react": "^5.0.2",
     "@tailwindcss/vite": "^4.1.16",
