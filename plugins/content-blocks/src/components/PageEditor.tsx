@@ -57,7 +57,7 @@ function PageList() {
 
   React.useEffect(() => {
     Promise.all([
-      fetchContentList("pages", { limit: 250 }),
+      fetchContentList("pages", { limit: 100 }),
       fetchContentList("homepage", { limit: 1 }),
     ])
       .then(([pagesResult, homepageResult]) => {
