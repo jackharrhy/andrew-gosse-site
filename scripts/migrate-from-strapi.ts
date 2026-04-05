@@ -64,11 +64,18 @@ const db = new Database(DB_PATH, { readonly: true });
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 async function getSessionCookie(): Promise<string> {
-  const res = await fetch(`${EMDASH_API}/auth/dev-bypass`, { method: "POST" });
+  const res = await fetch(`${EMDASH_API}/auth/dev-bypass`, {
+    method: "POST",
+    headers: {
+      Origin: EMDASH_URL,
+      "Content-Type": "application/json",
+    },
+  });
   const setCookie = res.headers.get("set-cookie");
   if (!setCookie) {
+    const text = await res.text().catch(() => "(unreadable)");
     throw new Error(
-      "No session cookie returned from dev bypass. Is EmDash running in dev mode?"
+      `No session cookie returned from dev bypass (${res.status}). Is EmDash running in dev mode? Body: ${text}`
     );
   }
   return setCookie.split(";")[0];
@@ -80,6 +87,28 @@ const RESIZED_PREFIXES = ["large_", "medium_", "small_", "thumbnail_"];
 
 function isResizedVariant(filename: string): boolean {
   return RESIZED_PREFIXES.some((p) => filename.startsWith(p));
+}
+
+/** Map file extension to MIME type for upload validation */
+function getMimeType(filename: string): string {
+  const ext = path.extname(filename).toLowerCase();
+  const map: Record<string, string> = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+    ".svg": "image/svg+xml",
+    ".avif": "image/avif",
+    ".mp4": "video/mp4",
+    ".webm": "video/webm",
+    ".mov": "video/quicktime",
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+    ".ogg": "audio/ogg",
+    ".pdf": "application/pdf",
+  };
+  return map[ext] ?? "application/octet-stream";
 }
 
 async function uploadAllMedia(cookie: string): Promise<Map<string, string>> {
@@ -101,8 +130,9 @@ async function uploadAllMedia(cookie: string): Promise<Map<string, string>> {
       )
       .get(strapiPath);
 
+    const mimeType = getMimeType(filename);
     const formData = new FormData();
-    const blob = new Blob([fs.readFileSync(filePath)]);
+    const blob = new Blob([fs.readFileSync(filePath)], { type: mimeType });
     formData.append("file", blob, filename);
     if (strapiFile?.alternativeText) {
       formData.append("altText", strapiFile.alternativeText);
@@ -113,6 +143,7 @@ async function uploadAllMedia(cookie: string): Promise<Map<string, string>> {
       headers: {
         Cookie: cookie,
         "X-EmDash-Request": "1",
+        Origin: EMDASH_URL,
       },
       body: formData,
     });
@@ -123,10 +154,14 @@ async function uploadAllMedia(cookie: string): Promise<Map<string, string>> {
       continue;
     }
 
-    const data = (await res.json()) as { url?: string };
-    if (data.url) {
-      urlMap.set(strapiPath, `${EMDASH_URL}${data.url}`);
-      console.log(`  ✓ ${filename} → ${data.url}`);
+    // API returns { data: { item: { url: "..." } } } or { data: { item: {...}, deduplicated: true } }
+    const json = (await res.json()) as { data?: { item?: { url?: string }; deduplicated?: boolean } };
+    const itemUrl = json.data?.item?.url;
+    if (itemUrl) {
+      const fullUrl = itemUrl.startsWith("http") ? itemUrl : `${EMDASH_URL}${itemUrl}`;
+      urlMap.set(strapiPath, fullUrl);
+      const dedup = json.data?.deduplicated ? " (dedup)" : "";
+      console.log(`  ✓ ${filename} → ${itemUrl}${dedup}`);
     }
   }
 
@@ -291,11 +326,12 @@ function buildSeo(cmps: CmpRow[], urlMap: Map<string, string>): object | null {
 
 async function contentExists(collection: string, slug: string, cookie: string): Promise<boolean> {
   const res = await fetch(`${EMDASH_API}/content/${collection}?status=published`, {
-    headers: { Cookie: cookie },
+    headers: { Cookie: cookie, Origin: EMDASH_URL },
   });
   if (!res.ok) return false;
-  const data = (await res.json()) as { items?: Array<{ slug: string }> };
-  return (data.items ?? []).some((item) => item.slug === slug);
+  // API returns { data: { items: [...] } }
+  const json = (await res.json()) as { data?: { items?: Array<{ slug: string }> } };
+  return (json.data?.items ?? []).some((item) => item.slug === slug);
 }
 
 async function createContent(
@@ -303,14 +339,19 @@ async function createContent(
   payload: { slug?: string; data: object; seo?: object | null; status: string },
   cookie: string
 ): Promise<void> {
+  // Strip null seo — EmDash rejects null, expects object or omitted
+  const body: Record<string, unknown> = { ...payload };
+  if (body.seo == null) delete body.seo;
+
   const res = await fetch(`${EMDASH_API}/content/${collection}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Cookie: cookie,
       "X-EmDash-Request": "1",
+      Origin: EMDASH_URL,
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
@@ -327,17 +368,20 @@ async function publishContent(
   cookie: string
 ): Promise<void> {
   const res = await fetch(`${EMDASH_API}/content/${collection}/${slug}`, {
-    headers: { Cookie: cookie },
+    headers: { Cookie: cookie, Origin: EMDASH_URL },
   });
   if (!res.ok) return;
-  const data = (await res.json()) as { id?: string };
-  if (!data.id) return;
+  // API returns { data: { item: { id: "..." } } }
+  const json = (await res.json()) as { data?: { item?: { id?: string } } };
+  const id = json.data?.item?.id;
+  if (!id) return;
 
-  await fetch(`${EMDASH_API}/content/${collection}/${data.id}/publish`, {
+  await fetch(`${EMDASH_API}/content/${collection}/${id}/publish`, {
     method: "POST",
     headers: {
       Cookie: cookie,
       "X-EmDash-Request": "1",
+      Origin: EMDASH_URL,
     },
   });
 }
@@ -414,8 +458,8 @@ async function seedPages(urlMap: Map<string, string>, cookie: string): Promise<v
       {
         slug: page.slug,
         // title is required by EmDash's pre-seeded pages schema
-        data: { title: page.slug, page_slug: page.slug, blocks },
-        seo,
+        // seo goes in data.seo (json field) — pages collection doesn't have SEO feature enabled
+        data: { title: page.slug, page_slug: page.slug, blocks, ...(seo ? { seo } : {}) },
         status: "published",
       },
       cookie
@@ -599,7 +643,7 @@ async function seedHomepage(urlMap: Map<string, string>, cookie: string): Promis
 
   await createContent(
     "homepage",
-    { slug: "homepage", data: { blocks }, seo, status: "published" },
+    { slug: "homepage", data: { blocks, ...(seo ? { seo } : {}) }, status: "published" },
     cookie
   );
   await publishContent("homepage", "homepage", cookie);
