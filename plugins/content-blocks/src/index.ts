@@ -24,6 +24,7 @@ export function createPlugin(): ResolvedPlugin {
       pages: [{ path: "/sidebar", label: "Sidebar", icon: "link" }],
       fieldWidgets: [
         { name: "colorPicker", label: "Color Picker", fieldTypes: ["string"] },
+        { name: "sidebarField", label: "Sidebar Field", fieldTypes: ["json"] },
       ],
       portableTextBlocks: [
         {
