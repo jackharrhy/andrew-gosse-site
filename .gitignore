@@ -2,3 +2,6 @@
 strapi_data/
 
 tmp
+
+emdash_data/*.db
+emdash_data/uploads/
