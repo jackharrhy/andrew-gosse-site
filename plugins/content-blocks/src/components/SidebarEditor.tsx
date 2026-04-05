@@ -38,6 +38,39 @@ interface SidebarState {
   links: SocialLink[];
 }
 
+// ─── SaveBar ──────────────────────────────────────────────────────────────────
+
+interface SaveBarProps {
+  saving: boolean;
+  saveStatus: "idle" | "saved" | "error";
+  onSave: () => void;
+  disabled: boolean;
+  sticky?: boolean;
+}
+
+function SaveBar({ saving, saveStatus, onSave, disabled, sticky }: SaveBarProps) {
+  return (
+    <div
+      className={`flex items-center gap-3 py-3 ${sticky ? "sticky top-0 z-10 bg-background border-b border-border" : "border-t border-border mt-4 pt-4"}`}
+    >
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={disabled}
+        className="px-4 py-2 rounded bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {saving ? "Saving…" : "Save & Publish"}
+      </button>
+      {saveStatus === "saved" && (
+        <span className="text-sm text-green-600 font-medium">Saved!</span>
+      )}
+      {saveStatus === "error" && (
+        <span className="text-sm text-destructive font-medium">Save failed</span>
+      )}
+    </div>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function SidebarEditor() {
@@ -91,27 +124,6 @@ export function SidebarEditor() {
     }
   };
 
-  const SaveBar = ({ sticky }: { sticky?: boolean }) => (
-    <div
-      className={`flex items-center gap-3 py-3 ${sticky ? "sticky top-0 z-10 bg-background border-b border-border" : "border-t border-border mt-4 pt-4"}`}
-    >
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={saving || !state}
-        className="px-4 py-2 rounded bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {saving ? "Saving…" : "Save & Publish"}
-      </button>
-      {saveStatus === "saved" && (
-        <span className="text-sm text-green-600 font-medium">Saved!</span>
-      )}
-      {saveStatus === "error" && (
-        <span className="text-sm text-destructive font-medium">Save failed</span>
-      )}
-    </div>
-  );
-
   if (loading) {
     return <div className="p-6 text-muted-foreground">Loading sidebar…</div>;
   }
@@ -128,7 +140,7 @@ export function SidebarEditor() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 flex flex-col gap-8">
-      <SaveBar sticky />
+      <SaveBar sticky saving={saving} saveStatus={saveStatus} onSave={handleSave} disabled={saving || !state} />
 
       {/* Top Image */}
       <section className="flex flex-col gap-3">
@@ -255,7 +267,7 @@ export function SidebarEditor() {
         </div>
       )}
 
-      <SaveBar />
+      <SaveBar saving={saving} saveStatus={saveStatus} onSave={handleSave} disabled={saving || !state} />
     </div>
   );
 }
