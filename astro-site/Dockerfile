@@ -1,19 +1,22 @@
-FROM platformatic/node-caged:alpine AS base
+FROM node:lts-alpine AS base
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 
 FROM base AS prod-deps
-RUN npm install --omit=dev
+RUN apk add --no-cache python3 make g++
+RUN npm ci --omit=dev --legacy-peer-deps
 
 FROM base AS build-deps
-RUN npm install
+RUN apk add --no-cache python3 make g++
+RUN npm ci --legacy-peer-deps
 
 FROM build-deps AS build
 COPY . .
 RUN npm run build
 
-FROM base AS runtime
+FROM node:lts-alpine AS runtime
+WORKDIR /app
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 
