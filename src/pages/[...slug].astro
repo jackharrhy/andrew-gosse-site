@@ -1,5 +1,4 @@
 ---
-// astro-site/src/pages/[...slug].astro
 import Layout from "../layouts/Layout.astro";
 import BlockRenderer from "../components/BlockRenderer.astro";
 import { fetchPage } from "../lib/fetch-emdash";
@@ -8,10 +7,14 @@ import type { Block } from "../types/emdash";
 const { slug } = Astro.params;
 
 if (!slug) {
-  throw new Error("Slug is required");
+  return Astro.redirect("/");
 }
 
 const page = await fetchPage(slug);
+
+if (!page) {
+  return new Response(null, { status: 404 });
+}
 ---
 
 <Layout

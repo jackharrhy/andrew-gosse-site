@@ -34,11 +34,11 @@ export async function fetchPages(): Promise<PageData[]> {
   return entries.map((e) => e.data as PageData);
 }
 
-export async function fetchPage(slug: string): Promise<PageData> {
+export async function fetchPage(slug: string): Promise<PageData | null> {
   // pages use page_slug field, but EmDash routes by the system `slug` column.
   // The migration script seeds pages with slug = the page's slug value.
   const { entry } = await getEmDashEntry("pages", slug);
-  if (!entry) throw new Error(`Page not found: ${slug}`);
+  if (!entry) return null;
   return entry.data as PageData;
 }
 
