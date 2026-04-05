@@ -8,7 +8,10 @@ export function contentBlocksPlugin(): PluginDescriptor {
     entrypoint: "@andrew-gosse-site/plugin-content-blocks",
     componentsEntry: "@andrew-gosse-site/plugin-content-blocks/astro",
     adminEntry: "@andrew-gosse-site/plugin-content-blocks/admin",
-    adminPages: [{ path: "/sidebar", label: "Sidebar", icon: "link" }],
+    adminPages: [
+      { path: "/sidebar", label: "Sidebar", icon: "link" },
+      { path: "/page-editor", label: "Page Editor", icon: "link" },
+    ],
     options: {},
   };
 }
@@ -21,10 +24,14 @@ export function createPlugin(): ResolvedPlugin {
 
     admin: {
       entry: "@andrew-gosse-site/plugin-content-blocks/admin",
-      pages: [{ path: "/sidebar", label: "Sidebar", icon: "link" }],
+      pages: [
+        { path: "/sidebar", label: "Sidebar", icon: "link" },
+        { path: "/page-editor", label: "Page Editor", icon: "link" },
+      ],
       fieldWidgets: [
         { name: "colorPicker", label: "Color Picker", fieldTypes: ["string"] },
         { name: "sidebarField", label: "Sidebar Field", fieldTypes: ["json"] },
+        { name: "blocksField", label: "Blocks Field", fieldTypes: ["portableText"] },
       ],
       portableTextBlocks: [
         {
