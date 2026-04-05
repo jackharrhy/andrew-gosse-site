@@ -5,3 +5,5 @@ tmp
 
 emdash_data/*.db
 emdash_data/uploads/
+
+node_modules/
