@@ -1,20 +1,19 @@
 ---
-import { externalStrapiUrl } from "../consts";
-import type { Sidebar } from "../graphql/graphql";
-import type { fetchSite } from "../lib/fetch-strapi";
+// astro-site/src/components/Sidebar.astro
+import type { SidebarData } from "../lib/fetch-emdash";
 
 interface Props {
-  sidebar: Awaited<ReturnType<typeof fetchSite>>["sidebar"];
+  sidebar: SidebarData;
 }
 
-const sidebar = Astro.props.sidebar!;
+const sidebar = Astro.props.sidebar;
 ---
 
 <nav class="flex flex-col gap-4 w-full lg:w-48 shrink-0">
   <a href="/" class="pb-2">
     <img
-      src={`${externalStrapiUrl}${sidebar.topImage!.url}`}
-      alt={sidebar.topImage!.alternativeText}
+      src={sidebar.top_image?.url}
+      alt={sidebar.top_image?.alt ?? ""}
       class="w-40 h-40 mx-auto border-black border-b-2"
     />
   </a>
@@ -33,26 +32,26 @@ const sidebar = Astro.props.sidebar!;
     <div class="flex flex-col gap-4">
       <div class="flex flex-col gap-3">
         {
-          sidebar.categories!.map((category) => (
+          sidebar.categories?.map((category) => (
             <div class="flex flex-col gap-1.5">
               <p
                 class="text-lg font-bold min-h-8 mt-2 mb-1 brightness-[1.4] bg-contain bg-no-repeat text-black"
                 style={
-                  category!.backgroundImage?.url
-                    ? `background-image: url('${`${externalStrapiUrl}${category!.backgroundImage.url}`}')`
+                  category.backgroundImage?.url
+                    ? `background-image: url('${category.backgroundImage.url}')`
                     : undefined
                 }
               >
-                {category!.categoryTitle}
+                {category.categoryTitle}
               </p>
               <ul class="flex flex-col gap-2">
-                {category!.items.map((item) => (
+                {category.items.map((item) => (
                   <li class="list-none">
                     <a
-                      href={`/${item!.page!.slug}`}
+                      href={`/${item.page.slug}`}
                       class="hover:text-link hover:underline"
                     >
-                      {item!.text}
+                      {item.text}
                     </a>
                   </li>
                 ))}
@@ -69,14 +68,14 @@ const sidebar = Astro.props.sidebar!;
       </a>
       <div class="flex flex-col gap-2">
         {
-          sidebar.links!.map((link) => (
+          sidebar.links?.map((link) => (
             <a
-              href={link!.url}
+              href={link.url}
               target="_blank"
               rel="noopener noreferrer"
               class="hover:text-link hover:underline"
             >
-              {link!.service}
+              {link.service}
             </a>
           ))
         }

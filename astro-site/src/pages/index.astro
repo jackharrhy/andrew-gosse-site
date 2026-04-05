@@ -1,18 +1,17 @@
 ---
-import BlockRenderer, { type Block } from "../components/BlockRenderer.astro";
+// astro-site/src/pages/index.astro
+import BlockRenderer from "../components/BlockRenderer.astro";
 import Layout from "../layouts/Layout.astro";
-import { fetchHomepage } from "../lib/fetch-strapi";
+import { fetchHomepage } from "../lib/fetch-emdash";
+import type { Block } from "../types/emdash";
 
 const homepage = await fetchHomepage();
 ---
 
 <Layout
-  title={homepage!.seo!.metaTitle}
-  description={homepage!.seo!.metaDescription}
+  title={homepage.seo?.metaTitle}
+  description={homepage.seo?.metaDescription}
+  seoImageUrl={homepage.seo?.shareImage?.url}
 >
-  <BlockRenderer
-    blocks={homepage!.blocks!.map((block) => {
-      return block as Block;
-    })}
-  />
+  <BlockRenderer blocks={(homepage.blocks ?? []) as Block[]} />
 </Layout>

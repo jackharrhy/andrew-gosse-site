@@ -1,29 +1,20 @@
 ---
+// astro-site/src/components/BlockRenderer.astro
 import { marked } from "marked";
-
-import type {
-  ComponentSharedMedia,
-  ComponentSharedRichText,
-  ComponentSharedSpecialComponent,
-} from "../graphql/graphql";
-import { externalStrapiUrl } from "../consts";
 import RisoColors from "./RisoColors.astro";
+import type { Block, MediaBlock } from "../types/emdash";
 
-/* prettier-ignore */
-export type Block = ComponentSharedMedia | ComponentSharedRichText | ComponentSharedSpecialComponent;
 interface Props {
   blocks: Block[];
 }
 
 const { blocks } = Astro.props;
 
-const generateFilterStyle = (block: ComponentSharedMedia) => {
-  return {
-    filter: block.filter!,
-  };
-};
+const generateFilterStyle = (block: MediaBlock) => ({
+  filter: block.filter ?? undefined,
+});
 
-const generateStyle = (block: ComponentSharedMedia) => {
+const generateStyle = (block: MediaBlock) => {
   const rotation = typeof block.rotation === "number" ? block.rotation : 0;
   const border = typeof block.border === "string" ? block.border : "none";
   const margin = typeof block.margin === "string" ? block.margin : "0 auto";
@@ -43,8 +34,7 @@ const generateStyle = (block: ComponentSharedMedia) => {
   };
 };
 
-// Style for the container wrapper (doesn't need positioning props)
-const generateContainerStyle = (block: ComponentSharedMedia) => {
+const generateContainerStyle = (block: MediaBlock) => {
   const rotation = typeof block.rotation === "number" ? block.rotation : 0;
   const margin = typeof block.margin === "string" ? block.margin : "0 auto";
   return {
@@ -56,54 +46,64 @@ const generateContainerStyle = (block: ComponentSharedMedia) => {
   };
 };
 
-const generateAdornmentStyle = (media: ComponentSharedMedia) => {
-  return {
-    position: "absolute",
-    ...generateStyle(media),
-  };
-};
+const generateAdornmentStyle = (adornment: NonNullable<MediaBlock["adornments"]>[number]) => ({
+  position: "absolute",
+  left: adornment.left,
+  top: adornment.top,
+  bottom: adornment.bottom,
+  right: adornment.right,
+  filter: adornment.filter,
+  transform:
+    typeof adornment.rotation === "number" && adornment.rotation !== 0
+      ? `rotate(${adornment.rotation}deg)`
+      : undefined,
+  border: adornment.border,
+  width: adornment.width,
+  maxHeight: adornment.height,
+  padding: adornment.padding,
+  margin: adornment.margin,
+});
 ---
 
 <article class="prose lg:prose-xl w-full flex flex-col gap-4">
   {
     blocks.map((block) =>
-      block.__typename === "ComponentSharedMedia" ? (
+      block._type === "media" ? (
         Array.isArray(block.adornments) && block.adornments.length > 0 ? (
           <div
             style={generateContainerStyle(block)}
             class="image-with-adornments relative not-prose"
           >
             <img
-              src={`${externalStrapiUrl}${block.file!.url}`}
-              alt={block.file!.alternativeText}
+              src={block.file.url}
+              alt={block.file.alt ?? ""}
               style={{
                 ...generateFilterStyle(block),
                 maxHeight: block.height,
                 border: block.border,
               }}
             />
-            {block.adornments.map((adornment, idx) => (
+            {block.adornments.map((adornment) => (
               <img
-                src={`${externalStrapiUrl}${adornment!.media!.file.url}`}
-                alt={adornment!.media!.file.alternativeText}
-                style={generateAdornmentStyle(adornment!.media!)}
+                src={adornment.file.url}
+                alt={adornment.file.alt ?? ""}
+                style={generateAdornmentStyle(adornment)}
               />
             ))}
           </div>
         ) : (
           <img
-            src={`${externalStrapiUrl}${block.file!.url}`}
-            alt={block.file!.alternativeText}
+            src={block.file.url}
+            alt={block.file.alt ?? ""}
             style={{
               ...generateStyle(block),
               ...generateFilterStyle(block),
             }}
           />
         )
-      ) : block.__typename === "ComponentSharedRichText" ? (
-        <Fragment set:html={marked.parse(block.body!)} />
-      ) : block.__typename === "ComponentSharedSpecialComponent" &&
-        block.type === "riso_colors" ? (
+      ) : block._type === "richText" ? (
+        <Fragment set:html={marked.parse(block.body)} />
+      ) : block._type === "specialComponent" && block.type === "riso_colors" ? (
         <RisoColors />
       ) : null
     )
@@ -111,33 +111,27 @@ const generateAdornmentStyle = (media: ComponentSharedMedia) => {
 </article>
 
 <style>
-  /* Use max-width instead of height: 100% to prevent Safari stretching */
   img {
     max-width: 100%;
     height: auto;
   }
 
-  /* Container for images with adornments needs proper sizing for Safari */
   .image-with-adornments {
     display: block;
     max-width: 100%;
-    /* Prevent flex stretching in Safari */
     flex-shrink: 0;
     align-self: flex-start;
   }
 
-  /* Main image establishes the container size */
   .image-with-adornments > img:first-child {
     display: block;
     max-width: 100%;
     height: auto;
-    /* Ensure image respects its natural aspect ratio */
     object-fit: contain;
   }
 
-  /* Adornments should not affect layout */
   .image-with-adornments > img:not(:first-child) {
     pointer-events: none;
-    max-width: none; /* Allow adornments to overflow if needed */
+    max-width: none;
   }
 </style>

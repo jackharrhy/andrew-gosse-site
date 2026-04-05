@@ -1,21 +1,17 @@
 ---
+// astro-site/src/layouts/Layout.astro
 import { ClientRouter } from "astro:transitions";
-
 import Sidebar from "../components/Sidebar.astro";
 import "../styles/global.css";
-import { externalStrapiUrl } from "../consts";
-import { fetchSite } from "../lib/fetch-strapi";
+import { fetchSite } from "../lib/fetch-emdash";
 
 interface Props {
   title?: string;
   description?: string | null;
-  seoImageUrl?: string;
+  seoImageUrl?: string | null;
 }
 
-const site = await fetchSite();
-const siteData = site.site!;
-const sidebar = site.sidebar!;
-
+const { site, sidebar } = await fetchSite();
 const { title, description, seoImageUrl } = Astro.props;
 ---
 
@@ -41,14 +37,8 @@ const { title, description, seoImageUrl } = Astro.props;
     {
       seoImageUrl && (
         <>
-          <meta
-            property="og:image"
-            content={`${externalStrapiUrl}${seoImageUrl}`}
-          />
-          <meta
-            name="twitter:image"
-            content={`${externalStrapiUrl}${seoImageUrl}`}
-          />
+          <meta property="og:image" content={seoImageUrl} />
+          <meta name="twitter:image" content={seoImageUrl} />
           <meta name="twitter:card" content="summary_large_image" />
         </>
       )
@@ -81,7 +71,7 @@ const { title, description, seoImageUrl } = Astro.props;
   </body>
 </html>
 
-<style define:vars={{ backgroundColor: siteData.backgroundColor }}>
+<style define:vars={{ backgroundColor: site.background_color ?? "#ffffff" }}>
   body {
     background-color: var(--backgroundColor);
   }
