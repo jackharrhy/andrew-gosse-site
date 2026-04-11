@@ -11,6 +11,7 @@ export function contentBlocksPlugin(): PluginDescriptor {
     adminPages: [
       { path: "/sidebar", label: "Sidebar", icon: "link" },
       { path: "/page-editor", label: "Page Editor", icon: "link" },
+      { path: "/seo-audit", label: "SEO Audit", icon: "link" },
     ],
     options: {},
   };
@@ -27,6 +28,7 @@ export function createPlugin(): ResolvedPlugin {
       pages: [
         { path: "/sidebar", label: "Sidebar", icon: "link" },
         { path: "/page-editor", label: "Page Editor", icon: "link" },
+        { path: "/seo-audit", label: "SEO Audit", icon: "link" },
       ],
       fieldWidgets: [
         { name: "colorPicker", label: "Color Picker", fieldTypes: ["string"] },
