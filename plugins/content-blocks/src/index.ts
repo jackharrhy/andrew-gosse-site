@@ -12,6 +12,7 @@ export function contentBlocksPlugin(): PluginDescriptor {
       { path: "/sidebar", label: "Sidebar", icon: "link" },
       { path: "/page-editor", label: "Page Editor", icon: "link" },
       { path: "/seo-audit", label: "SEO Audit", icon: "link" },
+      { path: "/adornment-library", label: "Adornment Library", icon: "link" },
     ],
     options: {},
   };
@@ -29,6 +30,7 @@ export function createPlugin(): ResolvedPlugin {
         { path: "/sidebar", label: "Sidebar", icon: "link" },
         { path: "/page-editor", label: "Page Editor", icon: "link" },
         { path: "/seo-audit", label: "SEO Audit", icon: "link" },
+        { path: "/adornment-library", label: "Adornment Library", icon: "link" },
       ],
       fieldWidgets: [
         { name: "colorPicker", label: "Color Picker", fieldTypes: ["string"] },
