@@ -41,11 +41,8 @@ const DB_PATH = join(process.cwd(), "data", "emdash.db");
 
 /**
  * Fetch native SEO data from _emdash_seo via direct SQLite.
- * Returns null if the DB is unavailable or no SEO row exists.
- */
-/**
- * Fetch native SEO data from _emdash_seo via direct SQLite.
  * contentIdOrSlug can be either the ULID or the slug — we resolve slug to ULID if needed.
+ * Returns null if the DB is unavailable or no SEO row exists.
  */
 function fetchNativeSeo(collection: string, contentIdOrSlug: string): NativeSeo | null {
   try {
