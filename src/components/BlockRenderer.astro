@@ -1,6 +1,5 @@
 ---
-import { PortableText } from "astro-portabletext";
-import { blockComponents } from "@andrew-gosse-site/plugin-content-blocks/astro";
+import { PortableText } from "emdash/ui";
 import type { Block } from "../types/emdash";
 
 interface Props {
@@ -11,5 +10,5 @@ const { blocks } = Astro.props;
 ---
 
 <article class="prose lg:prose-xl w-full flex flex-col gap-4">
-  <PortableText value={blocks as any} components={{ types: blockComponents }} />
+  <PortableText value={blocks as any} />
 </article>
