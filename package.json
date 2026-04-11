@@ -9,7 +9,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "ncu": "npm-check-updates",
-    "update-emdash": "cd tmp/emdash && git pull && pnpm install --ignore-scripts && pnpm --filter @emdash-cms/auth build && pnpm --filter @emdash-cms/gutenberg-to-portable-text build && pnpm --filter @emdash-cms/admin build && pnpm --filter emdash build && pnpm --filter emdash pack --pack-destination ../../tmp/emdash-packs && pnpm --filter @emdash-cms/admin pack --pack-destination ../../tmp/emdash-packs && cd ../.. && npm install"
+    "update-emdash": "cd tmp/emdash && git pull && pnpm install --ignore-scripts && pnpm --filter @emdash-cms/auth build && pnpm --filter @emdash-cms/gutenberg-to-portable-text build && pnpm --filter @emdash-cms/admin build && pnpm --filter emdash build && pnpm --filter emdash pack --pack-destination ../../tmp/emdash-packs && pnpm --filter @emdash-cms/admin pack --pack-destination ../../tmp/emdash-packs && cd ../../tmp/emdash-packs && mv emdash-*.tgz emdash.tgz && mv emdash-cms-admin-*.tgz emdash-cms-admin.tgz && cd ../.. && npm install"
   },
   "dependencies": {
     "@andrew-gosse-site/plugin-content-blocks": "file:./plugins/content-blocks",
@@ -20,8 +20,8 @@
     "@tiptap/y-tiptap": "^3.0.2",
     "astro": "^6.1.3",
     "astro-meta-tags": "^0.4.0",
-    "@emdash-cms/admin": "file:./tmp/emdash-packs/emdash-cms-admin-0.1.1.tgz",
-    "emdash": "file:./tmp/emdash-packs/emdash-0.1.1.tgz",
+    "@emdash-cms/admin": "file:./tmp/emdash-packs/emdash-cms-admin.tgz",
+    "emdash": "file:./tmp/emdash-packs/emdash.tgz",
     "marked": "^16.4.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
