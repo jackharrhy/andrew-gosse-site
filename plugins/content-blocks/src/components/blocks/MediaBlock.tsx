@@ -1,8 +1,8 @@
 // plugins/content-blocks/src/components/blocks/MediaBlock.tsx
 import * as React from "react";
 import { ImagePicker } from "../ImagePicker";
-import { Repeater } from "../Repeater";
-import type { MediaBlock as MediaBlockType, AdornmentBlock } from "@site/types/emdash";
+import { AdornmentPickerModal } from "../AdornmentPickerModal";
+import type { MediaBlock as MediaBlockType, AdornmentValue, AdornmentRef } from "@site/types/emdash";
 
 interface Props {
   block: MediaBlockType;
@@ -40,17 +40,32 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export function MediaBlock({ block, onChange }: Props) {
   const [showAdvanced, setShowAdvanced] = React.useState(false);
+  const [pickerOpen, setPickerOpen] = React.useState(false);
 
   const update = (patch: Partial<MediaBlockType>) =>
     onChange({ ...block, ...patch });
 
+  const adornments: AdornmentValue[] = block.adornments ?? [];
+
+  const addAdornment = (name: string) => {
+    const ref: AdornmentRef = { _adornmentName: name };
+    update({ adornments: [...adornments, ref] });
+  };
+
+  const removeAdornment = (index: number) => {
+    update({ adornments: adornments.filter((_, i) => i !== index) });
+  };
+
+  const getAdornmentLabel = (a: AdornmentValue): string => {
+    if ("_adornmentName" in a) return a._adornmentName;
+    return "(legacy inline)";
+  };
+
   return (
     <div className="rounded-md border border-border bg-card overflow-hidden">
-      {/* Header */}
-      <div className="px-4 py-2.5 border-b border-border bg-muted/40 flex items-center gap-2">
+      <div className="px-3 py-2.5 border-b border-border bg-muted/40 flex items-center gap-2">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Media</span>
       </div>
-
       <div className="p-4 flex flex-col gap-5">
         {/* Always visible: image picker */}
         <ImagePicker
@@ -108,68 +123,60 @@ export function MediaBlock({ block, onChange }: Props) {
                 />
                 <LayoutInput label="Border" value={block.border} placeholder="e.g. 2px solid black" onChange={(v) => update({ border: v || undefined })} />
                 <div className="col-span-2">
-                  <LayoutInput label="CSS Filter" value={block.filter} placeholder="e.g. grayscale(100%) or hue-rotate(45deg)" onChange={(v) => update({ filter: v || undefined })} />
+                  <LayoutInput label="CSS Filter" value={block.filter} placeholder="e.g. grayscale(100%)" onChange={(v) => update({ filter: v || undefined })} />
                 </div>
               </div>
             </div>
 
-            {/* Adornments */}
+            {/* Adornments — named library references */}
             <div>
               <SectionLabel>Adornments</SectionLabel>
-              <p className="text-xs text-muted-foreground mb-3">Images layered on top of this image with their own positioning.</p>
-              <Repeater<AdornmentBlock>
-                items={block.adornments ?? []}
-                onChange={(adornments) => update({ adornments })}
-                createItem={() => ({ file: { url: "", alt: null } })}
-                addLabel="+ Add adornment"
-                renderItem={(adornment, _i, updateAdornment) => (
-                  <div className="flex flex-col gap-4 p-4 rounded-md border border-border bg-muted/20">
-                    <ImagePicker
-                      label="Adornment image"
-                      value={adornment.file?.url ? { url: adornment.file.url, alt: adornment.file.alt ?? "" } : null}
-                      onChange={(val) =>
-                        updateAdornment({
-                          ...adornment,
-                          file: val ? { url: val.url, alt: val.alt } : { url: "", alt: null },
-                        })
-                      }
-                    />
-                    <div className="grid grid-cols-2 gap-3">
-                      {(["top", "right", "bottom", "left", "width", "height", "padding", "margin"] as const).map((field) => (
-                        <LayoutInput
-                          key={field}
-                          label={field.charAt(0).toUpperCase() + field.slice(1)}
-                          value={adornment[field]}
-                          placeholder="e.g. 10px"
-                          onChange={(v) => updateAdornment({ ...adornment, [field]: v || undefined })}
-                        />
-                      ))}
+              <p className="text-xs text-muted-foreground mb-3">
+                Decorative images layered on top (tape, lines, etc.). Pick from the{" "}
+                <a
+                  href="/_emdash/admin/plugins/content-blocks/adornment-library"
+                  className="underline hover:text-foreground"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Adornment Library
+                </a>.
+              </p>
+
+              {/* Current adornments as chips */}
+              {adornments.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {adornments.map((a, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border text-sm"
+                    >
+                      <span className="text-foreground">{getAdornmentLabel(a)}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeAdornment(i)}
+                        className="text-muted-foreground hover:text-destructive leading-none"
+                        title="Remove"
+                      >
+                        ×
+                      </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <LayoutInput
-                        label="Rotation (degrees)"
-                        value={adornment.rotation}
-                        type="number"
-                        placeholder="e.g. -25"
-                        onChange={(v) => updateAdornment({ ...adornment, rotation: v ? Number(v) : undefined })}
-                      />
-                      <LayoutInput
-                        label="Border"
-                        value={adornment.border}
-                        placeholder="e.g. 2px solid black"
-                        onChange={(v) => updateAdornment({ ...adornment, border: v || undefined })}
-                      />
-                      <div className="col-span-2">
-                        <LayoutInput
-                          label="CSS Filter"
-                          value={adornment.filter}
-                          placeholder="e.g. hue-rotate(45deg)"
-                          onChange={(v) => updateAdornment({ ...adornment, filter: v || undefined })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="text-sm px-3 py-1.5 rounded-md border border-input hover:bg-accent transition-colors"
+              >
+                + Add adornment
+              </button>
+
+              <AdornmentPickerModal
+                open={pickerOpen}
+                onOpenChange={setPickerOpen}
+                onSelect={addAdornment}
               />
             </div>
           </div>
