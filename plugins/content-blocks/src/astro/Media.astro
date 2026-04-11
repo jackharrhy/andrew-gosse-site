@@ -4,7 +4,8 @@
 // 2. Legacy inline: { file: {...}, height: "2rem", ... } — used as-is (backward compat)
 // 3. Legacy JSON string (from old Block Kit editor) — parsed then treated as inline
 import type { MediaBlock, AdornmentBlock, AdornmentValue } from "@site/types/emdash";
-import { fetchAdornmentLibrary, isAdornmentRef } from "@site/lib/fetch-emdash";
+import { isAdornmentRef } from "@site/types/emdash";
+import { fetchAdornmentLibrary } from "@site/lib/fetch-emdash";
 
 type FlatMediaNode = {
   file_url?: string;

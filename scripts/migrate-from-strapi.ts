@@ -342,6 +342,88 @@ async function createContent(
   }
 }
 
+async function updateContent(
+  collection: string,
+  slug: string,
+  payload: { data: object; seo?: object | null },
+  cookie: string
+): Promise<void> {
+  // Look up ID by slug first (must be published/listed)
+  const res = await fetch(`${EMDASH_API}/content/${collection}?status=published`, {
+    headers: { Cookie: cookie, Origin: EMDASH_URL },
+  });
+  if (!res.ok) return;
+  const json = (await res.json()) as { data?: { items?: Array<{ id: string; slug: string }> } };
+  const item = (json.data?.items ?? []).find((i) => i.slug === slug);
+  if (!item) return;
+
+  const body: Record<string, unknown> = { ...payload };
+  if (body.seo == null) delete body.seo;
+
+  await fetch(`${EMDASH_API}/content/${collection}/${item.id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: cookie,
+      "X-EmDash-Request": "1",
+      Origin: EMDASH_URL,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+/**
+ * For singleton collections: restore from trash if needed, then update.
+ * Used by --reset mode when the singleton was previously soft-deleted.
+ */
+async function restoreOrUpdateSingleton(
+  collection: string,
+  slug: string,
+  payload: { data: object; seo?: object | null },
+  cookie: string
+): Promise<"restored" | "updated" | "not_found"> {
+  // First check if it's in trash
+  const trashRes = await fetch(`${EMDASH_API}/content/${collection}/trash?limit=100`, {
+    headers: { Cookie: cookie, Origin: EMDASH_URL },
+  });
+  if (trashRes.ok) {
+    const trashJson = (await trashRes.json()) as {
+      data?: { items?: Array<{ id: string; slug: string }> };
+    };
+    const trashed = (trashJson.data?.items ?? []).find((i) => i.slug === slug);
+    if (trashed) {
+      // Restore it
+      await fetch(`${EMDASH_API}/content/${collection}/${trashed.id}/restore`, {
+        method: "POST",
+        headers: { Cookie: cookie, "X-EmDash-Request": "1", Origin: EMDASH_URL },
+      });
+      // Now update with new data
+      const body: Record<string, unknown> = { ...payload };
+      if (body.seo == null) delete body.seo;
+      await fetch(`${EMDASH_API}/content/${collection}/${trashed.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookie,
+          "X-EmDash-Request": "1",
+          Origin: EMDASH_URL,
+        },
+        body: JSON.stringify(body),
+      });
+      return "restored";
+    }
+  }
+
+  // Check if it's already published
+  const exists = await contentExists(collection, slug, cookie);
+  if (exists) {
+    await updateContent(collection, slug, payload, cookie);
+    return "updated";
+  }
+
+  return "not_found";
+}
+
 async function publishContent(
   collection: string,
   slug: string,
@@ -434,39 +516,71 @@ async function ensureAdornmentsCollection(cookie: string): Promise<void> {
 
 // ─── Reset helpers ────────────────────────────────────────────────────────────
 
-async function deleteAllContent(collection: string, cookie: string): Promise<void> {
-  const res = await fetch(`${EMDASH_API}/content/${collection}?limit=250`, {
-    headers: { Cookie: cookie, Origin: EMDASH_URL },
+async function permanentDeleteById(collection: string, id: string, cookie: string): Promise<void> {
+  await fetch(`${EMDASH_API}/content/${collection}/${id}/permanent`, {
+    method: "DELETE",
+    headers: { Cookie: cookie, "X-EmDash-Request": "1", Origin: EMDASH_URL },
   });
-  if (!res.ok) return;
-  const json = (await res.json()) as { data?: { items?: Array<{ id: string }> } };
-  const items = json.data?.items ?? [];
-  for (const item of items) {
-    await fetch(`${EMDASH_API}/content/${collection}/${item.id}`, {
-      method: "DELETE",
-      headers: { Cookie: cookie, "X-EmDash-Request": "1", Origin: EMDASH_URL },
+}
+
+async function deleteAllContent(collection: string, cookie: string): Promise<void> {
+  let total = 0;
+
+  // Phase 1: permanently delete already-trashed items
+  while (true) {
+    const res = await fetch(`${EMDASH_API}/content/${collection}/trash?limit=100`, {
+      headers: { Cookie: cookie, Origin: EMDASH_URL },
     });
+    if (!res.ok) break;
+    const json = (await res.json()) as { data?: { items?: Array<{ id: string }> } };
+    const items = json.data?.items ?? [];
+    if (items.length === 0) break;
+    for (const item of items) {
+      await permanentDeleteById(collection, item.id, cookie);
+    }
+    total += items.length;
   }
-  console.log(`  ✓ Deleted ${items.length} items from ${collection}`);
+
+  // Phase 2: soft-delete then permanently delete active published items
+  while (true) {
+    const res = await fetch(`${EMDASH_API}/content/${collection}?status=published&limit=100`, {
+      headers: { Cookie: cookie, Origin: EMDASH_URL },
+    });
+    if (!res.ok) break;
+    const json = (await res.json()) as { data?: { items?: Array<{ id: string }> } };
+    const items = json.data?.items ?? [];
+    if (items.length === 0) break;
+    for (const item of items) {
+      // Soft-delete first (moves to trash), then permanently delete
+      await fetch(`${EMDASH_API}/content/${collection}/${item.id}`, {
+        method: "DELETE",
+        headers: { Cookie: cookie, "X-EmDash-Request": "1", Origin: EMDASH_URL },
+      });
+      await permanentDeleteById(collection, item.id, cookie);
+    }
+    total += items.length;
+  }
+
+  console.log(`  ✓ Deleted ${total} items from ${collection}`);
 }
 
 async function resetAllContent(cookie: string): Promise<void> {
   console.log("\n--- Resetting all content ---");
-  for (const collection of ["homepage", "pages", "sidebar", "adornments", "site"]) {
+  // Only delete multi-item collections; singletons (site, sidebar, homepage) cannot be
+  // re-created after soft-delete due to unique slug constraints — they are updated in-place.
+  for (const collection of ["pages", "adornments"]) {
     await deleteAllContent(collection, cookie);
   }
 }
 
 // ─── Seed functions ───────────────────────────────────────────────────────────
 
-async function seedSite(urlMap: Map<string, string>, cookie: string): Promise<void> {
+async function seedSite(
+  urlMap: Map<string, string>,
+  cookie: string,
+  forceUpdate = false
+): Promise<void> {
   console.log("\n--- Seeding site ---");
-
-  const exists = await contentExists("site", "site", cookie);
-  if (exists) {
-    console.log("  site already exists, skipping");
-    return;
-  }
 
   const site = db
     .prepare<[], { background_color: string }>(
@@ -477,6 +591,27 @@ async function seedSite(urlMap: Map<string, string>, cookie: string): Promise<vo
   if (!site) {
     console.log("  No published site found");
     return;
+  }
+
+  if (forceUpdate) {
+    const result = await restoreOrUpdateSingleton(
+      "site",
+      "site",
+      { data: { background_color: site.background_color } },
+      cookie
+    );
+    if (result !== "not_found") {
+      await publishContent("site", "site", cookie);
+      console.log(`  ✓ site ${result}`);
+      return;
+    }
+    // Fall through to create if not found in trash or published
+  } else {
+    const exists = await contentExists("site", "site", cookie);
+    if (exists) {
+      console.log("  site already exists, skipping");
+      return;
+    }
   }
 
   await createContent(
@@ -615,14 +750,12 @@ async function seedPages(urlMap: Map<string, string>, cookie: string): Promise<v
   }
 }
 
-async function seedSidebar(urlMap: Map<string, string>, cookie: string): Promise<void> {
+async function seedSidebar(
+  urlMap: Map<string, string>,
+  cookie: string,
+  forceUpdate = false
+): Promise<void> {
   console.log("\n--- Seeding sidebar ---");
-
-  const exists = await contentExists("sidebar", "sidebar", cookie);
-  if (exists) {
-    console.log("  sidebar already exists, skipping");
-    return;
-  }
 
   const sidebar = db
     .prepare<[], { id: number }>(
@@ -744,11 +877,28 @@ async function seedSidebar(urlMap: Map<string, string>, cookie: string): Promise
     return link ? [link] : [];
   });
 
+  const sidebarData = { top_image: topImage, categories, links };
+
+  if (forceUpdate) {
+    const result = await restoreOrUpdateSingleton("sidebar", "sidebar", { data: sidebarData }, cookie);
+    if (result !== "not_found") {
+      await publishContent("sidebar", "sidebar", cookie);
+      console.log(`  ✓ sidebar ${result}`);
+      return;
+    }
+  } else {
+    const exists = await contentExists("sidebar", "sidebar", cookie);
+    if (exists) {
+      console.log("  sidebar already exists, skipping");
+      return;
+    }
+  }
+
   await createContent(
     "sidebar",
     {
       slug: "sidebar",
-      data: { top_image: topImage, categories, links },
+      data: sidebarData,
       status: "published",
     },
     cookie
@@ -757,14 +907,12 @@ async function seedSidebar(urlMap: Map<string, string>, cookie: string): Promise
   console.log("  ✓ sidebar seeded");
 }
 
-async function seedHomepage(urlMap: Map<string, string>, cookie: string): Promise<void> {
+async function seedHomepage(
+  urlMap: Map<string, string>,
+  cookie: string,
+  forceUpdate = false
+): Promise<void> {
   console.log("\n--- Seeding homepage ---");
-
-  const exists = await contentExists("homepage", "homepage", cookie);
-  if (exists) {
-    console.log("  homepage already exists, skipping");
-    return;
-  }
 
   const homepage = db
     .prepare<[], { id: number }>(
@@ -786,10 +934,26 @@ async function seedHomepage(urlMap: Map<string, string>, cookie: string): Promis
 
   const blocks = buildBlocks(cmps, urlMap);
   const seo = buildSeo(cmps, urlMap);
+  const homepageData = { blocks, ...(seo ? { seo } : {}) };
+
+  if (forceUpdate) {
+    const result = await restoreOrUpdateSingleton("homepage", "homepage", { data: homepageData }, cookie);
+    if (result !== "not_found") {
+      await publishContent("homepage", "homepage", cookie);
+      console.log(`  ✓ homepage ${result}`);
+      return;
+    }
+  } else {
+    const exists = await contentExists("homepage", "homepage", cookie);
+    if (exists) {
+      console.log("  homepage already exists, skipping");
+      return;
+    }
+  }
 
   await createContent(
     "homepage",
-    { slug: "homepage", data: { blocks, ...(seo ? { seo } : {}) }, status: "published" },
+    { slug: "homepage", data: homepageData, status: "published" },
     cookie
   );
   await publishContent("homepage", "homepage", cookie);
@@ -830,11 +994,11 @@ async function main() {
   const urlMap = await uploadAllMedia(cookie);
   console.log(`\n✓ Uploaded ${urlMap.size} media files`);
 
-  await seedSite(urlMap, cookie);
+  await seedSite(urlMap, cookie, doReset);
   await seedAdornmentLibrary(urlMap, cookie);
   await seedPages(urlMap, cookie);
-  await seedSidebar(urlMap, cookie);
-  await seedHomepage(urlMap, cookie);
+  await seedSidebar(urlMap, cookie, doReset);
+  await seedHomepage(urlMap, cookie, doReset);
 
   console.log("\n✓ Migration complete!");
   db.close();
