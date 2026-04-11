@@ -5,13 +5,15 @@ import Layout from "../layouts/Layout.astro";
 import { fetchHomepage } from "../lib/fetch-emdash";
 import type { Block } from "../types/emdash";
 
-const homepage = await fetchHomepage();
+const { data: homepage, seo } = await fetchHomepage();
 ---
 
 <Layout
   title={null}
-  description={homepage.seo?.metaDescription}
-  seoImageUrl={homepage.seo?.shareImage?.url}
+  description={seo?.description}
+  seoImageUrl={seo?.image}
+  noIndex={seo?.noIndex}
+  canonicalOverride={seo?.canonical}
 >
   <BlockRenderer blocks={(homepage.blocks ?? []) as Block[]} />
 </Layout>

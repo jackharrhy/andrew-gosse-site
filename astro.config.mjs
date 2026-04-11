@@ -12,6 +12,9 @@ export default defineConfig({
   site: "https://andrewgosse.com",
   vite: {
     plugins: [tailwindcss()],
+    ssr: {
+      external: ["better-sqlite3"],
+    },
   },
   adapter: node({
     mode: "standalone",

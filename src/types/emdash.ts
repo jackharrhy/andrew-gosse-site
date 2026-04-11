@@ -49,12 +49,6 @@ export interface SpecialComponentBlock {
 
 export type Block = MediaBlock | RichTextBlock | SpecialComponentBlock;
 
-export interface Seo {
-  metaTitle?: string | null;
-  metaDescription?: string | null;
-  shareImage?: MediaFile | null;
-}
-
 export interface SidebarItem {
   text: string;
   page: { slug: string };

@@ -10,11 +10,13 @@ if (!slug) {
   return Astro.redirect("/");
 }
 
-const page = await fetchPage(slug);
+const result = await fetchPage(slug);
 
-if (!page) {
+if (!result) {
   return new Response(null, { status: 404 });
 }
+
+const { data: page, seo } = result;
 
 // Format slug as readable title fallback: "game-audio" → "Game Audio"
 const slugTitle = slug
@@ -22,13 +24,15 @@ const slugTitle = slug
   .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
   .join(" ");
 
-const pageTitle = page.seo?.metaTitle || slugTitle;
+const pageTitle = seo?.title || slugTitle;
 ---
 
 <Layout
   title={pageTitle}
-  description={page.seo?.metaDescription}
-  seoImageUrl={page.seo?.shareImage?.url}
+  description={seo?.description}
+  seoImageUrl={seo?.image}
+  noIndex={seo?.noIndex}
+  canonicalOverride={seo?.canonical}
 >
   <BlockRenderer blocks={(page.blocks ?? []) as Block[]} />
 </Layout>
