@@ -45,14 +45,15 @@ pnpm --filter emdash build
 
 mkdir -p "$PACKS_DIR"
 
+# Remove any previous tarballs so the glob mv below matches exactly one file
+rm -f "$PACKS_DIR"/emdash-*.tgz "$PACKS_DIR"/emdash.tgz "$PACKS_DIR"/emdash-cms-admin.tgz
+
 echo "→ Packing emdash..."
 pnpm --filter emdash pack --pack-destination "$PACKS_DIR"
-# pnpm outputs emdash-<version>.tgz — rename to fixed name
 mv "$PACKS_DIR"/emdash-*.tgz "$PACKS_DIR/emdash.tgz"
 
 echo "→ Packing @emdash-cms/admin..."
 pnpm --filter @emdash-cms/admin pack --pack-destination "$PACKS_DIR"
-# pnpm outputs emdash-cms-admin-<version>.tgz — rename to fixed name
 mv "$PACKS_DIR"/emdash-cms-admin-*.tgz "$PACKS_DIR/emdash-cms-admin.tgz"
 
 # ── Install into the site ─────────────────────────────────────────────────────
