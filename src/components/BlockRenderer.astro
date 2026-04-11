@@ -1,0 +1,14 @@
+---
+import { PortableText } from "emdash/ui";
+import type { Block } from "../types/emdash";
+
+interface Props {
+  blocks: Block[];
+}
+
+const { blocks } = Astro.props;
+---
+
+<article class="prose lg:prose-xl w-full flex flex-col gap-4">
+  <PortableText value={blocks as any} />
+</article>

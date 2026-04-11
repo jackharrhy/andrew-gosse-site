@@ -1,0 +1,14 @@
+{
+  "name": "@andrew-gosse-site/plugin-content-blocks",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./astro": "./src/astro/index.ts",
+    "./admin": "./src/admin.tsx"
+  },
+  "peerDependencies": {
+    "astro": ">=6.0.0-beta.0",
+    "emdash": "^0.1.0"
+  }
+}

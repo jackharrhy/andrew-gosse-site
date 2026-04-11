@@ -1,0 +1,38 @@
+{
+  "name": "andrew-gosse-site",
+  "type": "module",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "ncu": "npm-check-updates",
+    "update-emdash": "./scripts/update-emdash.sh"
+  },
+  "dependencies": {
+    "@andrew-gosse-site/plugin-content-blocks": "file:./plugins/content-blocks",
+    "@astrojs/node": "^10.0.4",
+    "@astrojs/react": "^5.0.3",
+    "@emdash-cms/admin": "file:./tmp/emdash-packs/emdash-cms-admin.tgz",
+    "@tailwindcss/vite": "^4.2.2",
+    "@tiptap/extension-collaboration": "^3.22.3",
+    "@tiptap/y-tiptap": "^3.0.3",
+    "@types/better-sqlite3": "^7.6.13",
+    "astro": "^6.1.5",
+    "astro-meta-tags": "^0.4.1",
+    "better-sqlite3": "^12.8.0",
+    "emdash": "file:./tmp/emdash-packs/emdash.tgz",
+    "marked": "^18.0.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwindcss": "^4.2.2",
+    "y-protocols": "^1.0.7",
+    "yjs": "^13.6.30"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.19",
+    "npm-check-updates": "^20.0.1"
+  }
+}

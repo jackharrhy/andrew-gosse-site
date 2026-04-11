@@ -1,0 +1,18 @@
+---
+import BlockRenderer from "../components/BlockRenderer.astro";
+import Layout from "../layouts/Layout.astro";
+import { fetchHomepage } from "../lib/fetch-emdash";
+import type { Block } from "../types/emdash";
+
+const { data: homepage, seo } = await fetchHomepage();
+---
+
+<Layout
+  title={null}
+  description={seo?.description}
+  seoImageUrl={seo?.image}
+  noIndex={seo?.noIndex}
+  canonicalOverride={seo?.canonical}
+>
+  <BlockRenderer blocks={(homepage.blocks ?? []) as Block[]} />
+</Layout>

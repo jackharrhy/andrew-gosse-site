@@ -1,0 +1,7 @@
+---
+import RisoColors from "@site/components/RisoColors.astro";
+
+const { type } = Astro.props.node as { type: string };
+---
+
+{type === "riso_colors" && <RisoColors />}

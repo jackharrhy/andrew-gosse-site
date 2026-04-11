@@ -1,0 +1,80 @@
+---
+import { ClientRouter } from "astro:transitions";
+import Sidebar from "../components/Sidebar.astro";
+import "../styles/global.css";
+import { fetchSite } from "../lib/fetch-emdash";
+
+const SITE_NAME = "Andrew Gosse Composer";
+
+interface Props {
+  // Page-specific title. Do NOT include the site name — it's appended automatically.
+  // e.g. "About" → renders as "About | Andrew Gosse Composer"
+  title?: string | null;
+  description?: string | null;
+  seoImageUrl?: string | null;
+  noIndex?: boolean;
+  canonicalOverride?: string | null;
+}
+
+const { site, sidebar } = await fetchSite();
+const { title, description, seoImageUrl, noIndex, canonicalOverride } = Astro.props;
+
+const canonicalUrl = canonicalOverride ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
+const pageTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
+const ogImage = seoImageUrl ?? undefined;
+---
+
+<html lang="en" transition:name="root" transition:animate="none">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>{pageTitle}</title>
+    <link rel="canonical" href={canonicalUrl} />
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+
+    {description && <meta name="description" content={description} />}
+
+    {/* Open Graph */}
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={pageTitle} />
+    {description && <meta property="og:description" content={description} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+
+    {/* Twitter / X */}
+    <meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={pageTitle} />
+    {description && <meta name="twitter:description" content={description} />}
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gluten:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    />
+  </head>
+  <body
+    class="flex flex-col justify-center items-center lg:items-start lg:justify-start lg:flex-row p-8 gap-8 max-w-[100ch] mx-auto"
+  >
+    <Sidebar sidebar={sidebar} />
+    <div transition:animate="none" class="flex-1">
+      <slot />
+    </div>
+  </body>
+</html>
+
+<style define:vars={{ backgroundColor: site.background_color ?? "#ffffff" }}>
+  body {
+    background-color: var(--backgroundColor);
+  }
+</style>
+
+<ClientRouter />
