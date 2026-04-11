@@ -1,7 +1,7 @@
 import { getEmDashCollection, getEmDashEntry } from "emdash";
 import Database from "better-sqlite3";
 import { join } from "node:path";
-import type { Block, SidebarCategory, SidebarLink } from "../types/emdash";
+import type { Block, AdornmentBlock, MediaFile, SidebarCategory, SidebarLink } from "../types/emdash";
 
 // ─── Native SEO type (mirrors EmDash's _emdash_seo table) ────────────────────
 
@@ -113,4 +113,62 @@ export async function fetchSite(): Promise<{ sidebar: SidebarData; site: SiteDat
   const sidebar = (sidebarResult.entry?.data ?? {}) as SidebarData;
   const site = (siteResult.entry?.data ?? {}) as SiteData;
   return { sidebar, site };
+}
+
+/**
+ * Load all published adornments from ec_adornments as a name→AdornmentBlock map.
+ * Used by Media.astro to resolve _adornmentName references at render time.
+ * Synchronous SQLite read — fast (~1ms for small library).
+ */
+export function fetchAdornmentLibrary(): Map<string, AdornmentBlock> {
+  try {
+    const db = new Database(DB_PATH, { readonly: true });
+    type Row = {
+      name: string;
+      file: string | null;
+      width: string | null;
+      height: string | null;
+      padding: string | null;
+      margin: string | null;
+      top: string | null;
+      right: string | null;
+      bottom: string | null;
+      left: string | null;
+      rotation: number | null;
+      border: string | null;
+      filter: string | null;
+    };
+    const rows = db
+      .prepare<[], Row>(
+        `SELECT name, file, width, height, padding, margin,
+                top, "right", bottom, "left", rotation, border, filter
+         FROM ec_adornments
+         WHERE status = 'published' AND deleted_at IS NULL`
+      )
+      .all();
+    db.close();
+    const map = new Map<string, AdornmentBlock>();
+    for (const row of rows) {
+      const file: MediaFile = row.file
+        ? (JSON.parse(row.file) as MediaFile)
+        : { url: "", alt: null };
+      map.set(row.name, {
+        file,
+        width: row.width ?? undefined,
+        height: row.height ?? undefined,
+        padding: row.padding ?? undefined,
+        margin: row.margin ?? undefined,
+        top: row.top ?? undefined,
+        right: row.right ?? undefined,
+        bottom: row.bottom ?? undefined,
+        left: row.left ?? undefined,
+        rotation: row.rotation ?? undefined,
+        border: row.border ?? undefined,
+        filter: row.filter ?? undefined,
+      });
+    }
+    return map;
+  } catch {
+    return new Map();
+  }
 }
