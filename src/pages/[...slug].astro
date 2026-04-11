@@ -15,10 +15,18 @@ const page = await fetchPage(slug);
 if (!page) {
   return new Response(null, { status: 404 });
 }
+
+// Format slug as readable title fallback: "game-audio" → "Game Audio"
+const slugTitle = slug
+  .split("-")
+  .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+  .join(" ");
+
+const pageTitle = page.seo?.metaTitle || slugTitle;
 ---
 
 <Layout
-  title={page.seo?.metaTitle}
+  title={pageTitle}
   description={page.seo?.metaDescription}
   seoImageUrl={page.seo?.shareImage?.url}
 >

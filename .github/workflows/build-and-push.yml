@@ -31,12 +31,16 @@ jobs:
         id: emdash-sha
         run: echo "sha=$(git -C tmp/emdash rev-parse HEAD)" >> $GITHUB_OUTPUT
 
+      - name: Get patches hash for cache key
+        id: patches-hash
+        run: echo "hash=$(find patches/ -name '*.patch' -exec sha256sum {} \; | sha256sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
       - name: Cache emdash tarballs
         id: emdash-cache
         uses: actions/cache@v4
         with:
           path: tmp/emdash-packs
-          key: emdash-packs-${{ steps.emdash-sha.outputs.sha }}
+          key: emdash-packs-${{ steps.emdash-sha.outputs.sha }}-${{ steps.patches-hash.outputs.hash }}
 
       - name: Build and pack emdash packages
         if: steps.emdash-cache.outputs.cache-hit != 'true'

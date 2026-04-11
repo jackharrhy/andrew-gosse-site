@@ -22,6 +22,23 @@ fi
 
 cd "$EMDASH_DIR"
 
+# ── Apply local patches ───────────────────────────────────────────────────────
+# Patches live in $ROOT/patches/ and are applied after every pull.
+# If a patch is already applied (git apply --check fails), skip silently.
+
+PATCHES_DIR="$ROOT/patches"
+if [ -d "$PATCHES_DIR" ] && ls "$PATCHES_DIR"/*.patch 1>/dev/null 2>&1; then
+  echo "→ Applying local patches..."
+  for patch in "$PATCHES_DIR"/*.patch; do
+    if git apply --check "$patch" 2>/dev/null; then
+      git apply "$patch"
+      echo "  ✓ $(basename "$patch")"
+    else
+      echo "  ⚠ $(basename "$patch") already applied or conflicts — skipping"
+    fi
+  done
+fi
+
 # ── Install deps ──────────────────────────────────────────────────────────────
 
 echo "→ Installing emdash monorepo deps..."
@@ -58,8 +75,26 @@ mv "$PACKS_DIR"/emdash-cms-admin-*.tgz "$PACKS_DIR/emdash-cms-admin.tgz"
 
 # ── Install into the site ─────────────────────────────────────────────────────
 
-echo "→ Installing into site..."
+echo "→ Clearing stale integrity hashes in lockfile..."
 cd "$ROOT"
+# npm caches integrity hashes for file: dependencies — after repacking the
+# tarballs change and the old hashes fail. Clear them so npm recomputes.
+python3 -c "
+import json, sys
+try:
+    with open('package-lock.json') as f:
+        lock = json.load(f)
+    for key, pkg in lock.get('packages', {}).items():
+        if 'emdash-packs' in pkg.get('resolved', '') and 'integrity' in pkg:
+            del pkg['integrity']
+    with open('package-lock.json', 'w') as f:
+        json.dump(lock, f, indent=2)
+        f.write('\n')
+except Exception as e:
+    print(f'Warning: could not clear integrity hashes: {e}', file=sys.stderr)
+"
+
+echo "→ Installing into site..."
 npm install
 
 echo "✓ emdash updated and installed"

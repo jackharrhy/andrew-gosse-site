@@ -1,0 +1,57 @@
+diff --git a/packages/core/src/astro/routes/sitemap.xml.ts b/packages/core/src/astro/routes/sitemap.xml.ts
+index 9fb8535..5c08562 100644
+--- a/packages/core/src/astro/routes/sitemap.xml.ts
++++ b/packages/core/src/astro/routes/sitemap.xml.ts
+@@ -6,8 +6,8 @@
+  * Includes all published, non-noindex content across all collections.
+  * The site URL is read from site settings or the request URL origin.
+  *
+- * Default URL pattern: /{collection}/{slug-or-id}. Users can override
+- * by creating their own /sitemap.xml route in their Astro project.
++ * URL pattern: uses the collection's url_pattern field if set
++ * (e.g. "/{slug}" → "/about"), otherwise falls back to /{collection}/{identifier}.
+  */
+ 
+ import type { APIRoute } from "astro";
+@@ -39,6 +39,18 @@ export const GET: APIRoute = async ({ locals, url }) => {
+ 		const settings = await getSiteSettingsWithDb(emdash.db);
+ 		const siteUrl = (settings.url || url.origin).replace(TRAILING_SLASH_RE, "");
+ 
++		// Load url_pattern for each collection so we can build correct URLs
++		const collectionPatterns = await emdash.db
++			.selectFrom("_emdash_collections")
++			.select(["slug", "url_pattern"])
++			.execute();
++		const urlPatternMap = new Map<string, string | null>(
++			collectionPatterns.map((c: { slug: string; url_pattern?: string | null }) => [
++				c.slug,
++				c.url_pattern ?? null,
++			]),
++		);
++
+ 		const result = await handleSitemapData(emdash.db);
+ 
+ 		if (!result.success || !result.data) {
+@@ -57,9 +69,19 @@ export const GET: APIRoute = async ({ locals, url }) => {
+ 		];
+ 
+ 		for (const entry of entries) {
+-			// Default URL pattern: /{collection}/{identifier}
+-			// Encode path segments to handle slugs with spaces/unicode/reserved chars
+-			const loc = `${siteUrl}/${encodeURIComponent(entry.collection)}/${encodeURIComponent(entry.identifier)}`;
++			// Use collection's url_pattern if set, otherwise fall back to /{collection}/{identifier}
++			const pattern = urlPatternMap.get(entry.collection);
++			let loc: string;
++			if (pattern) {
++				// Replace {slug} and {id} tokens with the actual identifier
++				const resolved = pattern
++					.replace(/\{slug\}/g, encodeURIComponent(entry.identifier))
++					.replace(/\{id\}/g, encodeURIComponent(entry.identifier));
++				loc = `${siteUrl}${resolved.startsWith("/") ? resolved : `/${resolved}`}`;
++			} else {
++				// Default fallback: /{collection}/{identifier}
++				loc = `${siteUrl}/${encodeURIComponent(entry.collection)}/${encodeURIComponent(entry.identifier)}`;
++			}
+ 
+ 			lines.push("  <url>");
+ 			lines.push(`    <loc>${escapeXml(loc)}</loc>`);

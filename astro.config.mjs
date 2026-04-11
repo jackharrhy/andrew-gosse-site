@@ -9,6 +9,7 @@ import { sqlite } from "emdash/db";
 import { contentBlocksPlugin } from "@andrew-gosse-site/plugin-content-blocks";
 
 export default defineConfig({
+  site: "https://andrewgosse.com",
   vite: {
     plugins: [tailwindcss()],
   },
