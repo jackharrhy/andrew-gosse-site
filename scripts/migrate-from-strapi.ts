@@ -25,6 +25,10 @@ const UPLOADS_PATH = path.join(ROOT, "tmp/backups/andrewsite_strapi_uploads");
 const EMDASH_URL = "http://localhost:4321";
 const EMDASH_API = `${EMDASH_URL}/_emdash/api`;
 
+function slugify(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface StrapiFile {
@@ -182,7 +186,7 @@ function getFileForMedia(mediaId: number): StrapiFile | undefined {
     .get(mediaId) ?? undefined;
 }
 
-function getAdornmentsForMedia(mediaId: number, urlMap: Map<string, string>): object[] {
+function getAdornmentsForMedia(mediaId: number, _urlMap: Map<string, string>): object[] {
   const links = db
     .prepare<[number], { adornment_id: number }>(
       `SELECT adornment_id FROM components_shared_media_adornments_lnk
@@ -191,38 +195,14 @@ function getAdornmentsForMedia(mediaId: number, urlMap: Map<string, string>): ob
     .all(mediaId);
 
   return links.flatMap(({ adornment_id }) => {
-    const adornmentCmp = db
-      .prepare<[number], StrapiMediaComponent>(
-        `SELECT csm.* FROM adornments a
-         JOIN adornments_cmps ac ON ac.entity_id = a.id AND ac.component_type = 'shared.media'
-         JOIN components_shared_media csm ON csm.id = ac.cmp_id
-         WHERE a.id = ? AND a.published_at IS NOT NULL
-         LIMIT 1`
+    const adornment = db
+      .prepare<[number], { name: string }>(
+        "SELECT name FROM adornments WHERE id = ? AND published_at IS NOT NULL LIMIT 1"
       )
-      .get(adornment_id) ?? undefined;
+      .get(adornment_id);
 
-    if (!adornmentCmp) return [];
-
-    const file = getFileForMedia(adornmentCmp.id);
-    if (!file) return [];
-
-    const emdashUrl = urlMap.get(file.url) ?? file.url;
-    return [
-      {
-        file: { url: emdashUrl, alt: file.alternativeText ?? null },
-        width: adornmentCmp.width ?? undefined,
-        height: adornmentCmp.height ?? undefined,
-        padding: adornmentCmp.padding ?? undefined,
-        margin: adornmentCmp.margin ?? undefined,
-        top: adornmentCmp.top ?? undefined,
-        right: adornmentCmp.right ?? undefined,
-        bottom: adornmentCmp.bottom ?? undefined,
-        left: adornmentCmp.left ?? undefined,
-        rotation: adornmentCmp.rotation ?? undefined,
-        border: adornmentCmp.border ?? undefined,
-        filter: adornmentCmp.filter ?? undefined,
-      },
-    ];
+    if (!adornment) return [];
+    return [{ _adornmentName: adornment.name }];
   });
 }
 
@@ -386,6 +366,97 @@ async function publishContent(
   });
 }
 
+// ─── Schema helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Ensure the adornments collection exists in EmDash.
+ * Creates it via schema API if missing. Safe to call multiple times.
+ */
+async function ensureAdornmentsCollection(cookie: string): Promise<void> {
+  // Check if collection already exists
+  const checkRes = await fetch(`${EMDASH_API}/content/adornments?limit=1`, {
+    headers: { Cookie: cookie, Origin: EMDASH_URL },
+  });
+  if (checkRes.ok) return; // already exists
+
+  console.log("  Creating adornments collection...");
+
+  // Create the collection
+  const createRes = await fetch(`${EMDASH_API}/schema/collections`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: cookie,
+      "X-EmDash-Request": "1",
+      Origin: EMDASH_URL,
+    },
+    body: JSON.stringify({ slug: "adornments", label: "Adornments", label_singular: "Adornment" }),
+  });
+  if (!createRes.ok) {
+    const text = await createRes.text();
+    throw new Error(`Failed to create adornments collection: ${createRes.status} ${text}`);
+  }
+
+  // Add all fields
+  const fields = [
+    { slug: "name", label: "Name", type: "string" },
+    { slug: "file", label: "File", type: "json" },
+    { slug: "width", label: "Width", type: "string" },
+    { slug: "height", label: "Height", type: "string" },
+    { slug: "padding", label: "Padding", type: "string" },
+    { slug: "margin", label: "Margin", type: "string" },
+    { slug: "top", label: "Top", type: "string" },
+    { slug: "right", label: "Right", type: "string" },
+    { slug: "bottom", label: "Bottom", type: "string" },
+    { slug: "left", label: "Left", type: "string" },
+    { slug: "rotation", label: "Rotation", type: "number" },
+    { slug: "border", label: "Border", type: "string" },
+    { slug: "filter", label: "Filter", type: "string" },
+  ];
+
+  for (const field of fields) {
+    const res = await fetch(`${EMDASH_API}/schema/collections/adornments/fields`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: cookie,
+        "X-EmDash-Request": "1",
+        Origin: EMDASH_URL,
+      },
+      body: JSON.stringify(field),
+    });
+    if (!res.ok) {
+      console.warn(`  ⚠ Failed to create field ${field.slug}: ${res.status}`);
+    }
+  }
+  console.log("  ✓ adornments collection created");
+}
+
+// ─── Reset helpers ────────────────────────────────────────────────────────────
+
+async function deleteAllContent(collection: string, cookie: string): Promise<void> {
+  const res = await fetch(`${EMDASH_API}/content/${collection}?limit=250`, {
+    headers: { Cookie: cookie, Origin: EMDASH_URL },
+  });
+  if (!res.ok) return;
+  const json = (await res.json()) as { data?: { items?: Array<{ id: string }> } };
+  const items = json.data?.items ?? [];
+  for (const item of items) {
+    await fetch(`${EMDASH_API}/content/${collection}/${item.id}`, {
+      method: "DELETE",
+      headers: { Cookie: cookie, "X-EmDash-Request": "1", Origin: EMDASH_URL },
+    });
+  }
+  console.log(`  ✓ Deleted ${items.length} items from ${collection}`);
+}
+
+async function resetAllContent(cookie: string): Promise<void> {
+  console.log("\n--- Resetting all content ---");
+  for (const collection of ["homepage", "pages", "sidebar", "adornments", "site"]) {
+    await deleteAllContent(collection, cookie);
+  }
+}
+
 // ─── Seed functions ───────────────────────────────────────────────────────────
 
 async function seedSite(urlMap: Map<string, string>, cookie: string): Promise<void> {
@@ -419,6 +490,81 @@ async function seedSite(urlMap: Map<string, string>, cookie: string): Promise<vo
   );
   await publishContent("site", "site", cookie);
   console.log("  ✓ site seeded");
+}
+
+async function seedAdornmentLibrary(urlMap: Map<string, string>, cookie: string): Promise<void> {
+  console.log("\n--- Seeding adornment library ---");
+
+  type AdornmentRow = {
+    id: number;
+    name: string;
+    width: string | null;
+    height: string | null;
+    rotation: number | null;
+    top: string | null;
+    left: string | null;
+    right: string | null;
+    bottom: string | null;
+    border: string | null;
+    filter: string | null;
+    padding: string | null;
+    margin: string | null;
+    file_url: string;
+    alternative_text: string | null;
+  };
+
+  const adornments = db
+    .prepare<[], AdornmentRow>(
+      `SELECT a.id, a.name,
+              csm.width, csm.height, csm.rotation, csm.top, csm.left,
+              csm.right, csm.bottom, csm.border, csm.filter, csm.padding, csm.margin,
+              f.url as file_url, f.alternative_text
+       FROM adornments a
+       JOIN adornments_cmps ac ON ac.entity_id = a.id AND ac.component_type = 'shared.media'
+       JOIN components_shared_media csm ON csm.id = ac.cmp_id
+       JOIN files_related_mph frm ON frm.related_id = csm.id AND frm.related_type = 'shared.media'
+       JOIN files f ON f.id = frm.file_id
+       WHERE a.published_at IS NOT NULL`
+    )
+    .all();
+
+  console.log(`  Found ${adornments.length} adornments`);
+
+  for (const a of adornments) {
+    const exists = await contentExists("adornments", slugify(a.name), cookie);
+    if (exists) {
+      console.log(`  adornment/${a.name} already exists, skipping`);
+      continue;
+    }
+
+    const emdashUrl = urlMap.get(a.file_url) ?? a.file_url;
+
+    await createContent(
+      "adornments",
+      {
+        slug: slugify(a.name),
+        data: {
+          name: a.name,
+          file: { url: emdashUrl, alt: a.alternative_text ?? null },
+          width: a.width ?? null,
+          height: a.height ?? null,
+          padding: a.padding ?? null,
+          margin: a.margin ?? null,
+          top: a.top ?? null,
+          right: a.right ?? null,
+          bottom: a.bottom ?? null,
+          left: a.left ?? null,
+          rotation: a.rotation ?? null,
+          border: a.border ?? null,
+          filter: a.filter ?? null,
+        },
+        status: "published",
+      },
+      cookie
+    );
+    await publishContent("adornments", slugify(a.name), cookie);
+    console.log(`  ✓ adornment/${a.name}`);
+  }
 }
 
 async function seedPages(urlMap: Map<string, string>, cookie: string): Promise<void> {
@@ -653,10 +799,15 @@ async function seedHomepage(urlMap: Map<string, string>, cookie: string): Promis
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
+  const args = process.argv.slice(2);
+  const doReset = args.includes("--reset");
+
   console.log("Strapi → EmDash migration\n");
   console.log(`DB: ${DB_PATH}`);
   console.log(`Uploads: ${UPLOADS_PATH}`);
-  console.log(`EmDash: ${EMDASH_URL}\n`);
+  console.log(`EmDash: ${EMDASH_URL}`);
+  if (doReset) console.log("Mode: --reset (will wipe existing content)\n");
+  else console.log("Mode: incremental (skips existing)\n");
 
   if (!fs.existsSync(DB_PATH)) {
     throw new Error(`Strapi DB not found at ${DB_PATH}`);
@@ -668,10 +819,19 @@ async function main() {
   const cookie = await getSessionCookie();
   console.log("✓ Authenticated with EmDash\n");
 
+  // Ensure adornments collection exists (creates it if missing)
+  console.log("--- Ensuring schema ---");
+  await ensureAdornmentsCollection(cookie);
+
+  if (doReset) {
+    await resetAllContent(cookie);
+  }
+
   const urlMap = await uploadAllMedia(cookie);
   console.log(`\n✓ Uploaded ${urlMap.size} media files`);
 
   await seedSite(urlMap, cookie);
+  await seedAdornmentLibrary(urlMap, cookie);
   await seedPages(urlMap, cookie);
   await seedSidebar(urlMap, cookie);
   await seedHomepage(urlMap, cookie);
