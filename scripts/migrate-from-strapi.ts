@@ -21,6 +21,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 
 const DB_PATH = path.join(ROOT, "tmp/backups/andrewsite_strapi_data/data.db");
+const EMDASH_DB_PATH = path.join(ROOT, "data/emdash.db");
 const UPLOADS_PATH = path.join(ROOT, "tmp/backups/andrewsite_strapi_uploads");
 const EMDASH_URL = "http://localhost:4321";
 const EMDASH_API = `${EMDASH_URL}/_emdash/api`;
@@ -382,46 +383,67 @@ async function restoreOrUpdateSingleton(
   payload: { data: object; seo?: object | null },
   cookie: string
 ): Promise<"restored" | "updated" | "not_found"> {
-  // First check if it's in trash
-  const trashRes = await fetch(`${EMDASH_API}/content/${collection}/trash?limit=100`, {
+  // Get the item ID from the API (checks both published and trashed)
+  let itemId: string | null = null;
+
+  // Check published
+  const pubRes = await fetch(`${EMDASH_API}/content/${collection}?status=published&limit=100`, {
     headers: { Cookie: cookie, Origin: EMDASH_URL },
   });
-  if (trashRes.ok) {
-    const trashJson = (await trashRes.json()) as {
-      data?: { items?: Array<{ id: string; slug: string }> };
-    };
-    const trashed = (trashJson.data?.items ?? []).find((i) => i.slug === slug);
-    if (trashed) {
-      // Restore it
-      await fetch(`${EMDASH_API}/content/${collection}/${trashed.id}/restore`, {
-        method: "POST",
-        headers: { Cookie: cookie, "X-EmDash-Request": "1", Origin: EMDASH_URL },
-      });
-      // Now update with new data
-      const body: Record<string, unknown> = { ...payload };
-      if (body.seo == null) delete body.seo;
-      await fetch(`${EMDASH_API}/content/${collection}/${trashed.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Cookie: cookie,
-          "X-EmDash-Request": "1",
-          Origin: EMDASH_URL,
-        },
-        body: JSON.stringify(body),
-      });
-      return "restored";
+  if (pubRes.ok) {
+    const json = (await pubRes.json()) as { data?: { items?: Array<{ id: string; slug: string }> } };
+    itemId = (json.data?.items ?? []).find((i) => i.slug === slug)?.id ?? null;
+  }
+
+  // Check trash
+  if (!itemId) {
+    const trashRes = await fetch(`${EMDASH_API}/content/${collection}/trash?limit=100`, {
+      headers: { Cookie: cookie, Origin: EMDASH_URL },
+    });
+    if (trashRes.ok) {
+      const json = (await trashRes.json()) as { data?: { items?: Array<{ id: string; slug: string }> } };
+      const trashed = (json.data?.items ?? []).find((i) => i.slug === slug);
+      if (trashed) {
+        // Restore first so item is published
+        await fetch(`${EMDASH_API}/content/${collection}/${trashed.id}/restore`, {
+          method: "POST",
+          headers: { Cookie: cookie, "X-EmDash-Request": "1", Origin: EMDASH_URL },
+        });
+        await publishContent(collection, slug, cookie);
+        itemId = trashed.id;
+      }
     }
   }
 
-  // Check if it's already published
-  const exists = await contentExists(collection, slug, cookie);
-  if (exists) {
-    await updateContent(collection, slug, payload, cookie);
-    return "updated";
+  if (!itemId) return "not_found";
+
+  // Write a new revision directly to the EmDash SQLite DB.
+  // EmDash's PUT/updateContent endpoint updates row columns but bypasses the
+  // revision system — live_revision_id stays pointing at the old revision, so
+  // publishContent syncs the old data back. Writing a new revision + updating
+  // live_revision_id is the only reliable way to update singleton content.
+  const emdashDb = new Database(EMDASH_DB_PATH);
+  try {
+    const { ulid } = await import("ulid");
+    const newRevisionId = ulid();
+    const dataJson = JSON.stringify(payload.data);
+    const now = new Date().toISOString();
+
+    emdashDb.prepare(
+      `INSERT INTO revisions (id, collection, entry_id, data, created_at)
+       VALUES (?, ?, ?, ?, ?)`
+    ).run(newRevisionId, collection, itemId, dataJson, now);
+
+    emdashDb.prepare(
+      `UPDATE "ec_${collection}"
+       SET live_revision_id = ?, draft_revision_id = NULL, updated_at = ?, published_at = ?
+       WHERE id = ?`
+    ).run(newRevisionId, now, now, itemId);
+  } finally {
+    emdashDb.close();
   }
 
-  return "not_found";
+  return "updated";
 }
 
 async function publishContent(
