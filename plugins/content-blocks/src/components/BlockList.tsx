@@ -85,7 +85,7 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
         );
       default:
         return (
-          <div className="p-3 rounded border border-border text-xs text-muted-foreground">
+          <div className="p-4 rounded-md border border-border text-sm text-muted-foreground">
             Unknown block type: {(block as { _type: string })._type}
           </div>
         );
@@ -93,16 +93,16 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       {blocks.map((block, index) => (
-        <div key={index} className="flex gap-2 items-start">
-          {/* Reorder buttons */}
-          <div className="flex flex-col gap-1 pt-2 flex-shrink-0">
+        <div key={index} className="flex gap-3 items-start group">
+          {/* Reorder controls — stacked vertically, appear on hover */}
+          <div className="flex flex-col gap-1 pt-3 flex-shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
             <button
               type="button"
               onClick={() => moveUp(index)}
               disabled={index === 0}
-              className="text-xs px-1 py-0.5 rounded border border-input hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-7 h-7 rounded border border-input hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-sm transition-colors"
               title="Move up"
             >
               ↑
@@ -111,19 +111,21 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
               type="button"
               onClick={() => moveDown(index)}
               disabled={index === blocks.length - 1}
-              className="text-xs px-1 py-0.5 rounded border border-input hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-7 h-7 rounded border border-input hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-sm transition-colors"
               title="Move down"
             >
               ↓
             </button>
           </div>
+
           {/* Block editor */}
           <div className="flex-1 min-w-0">{renderBlock(block, index)}</div>
-          {/* Remove button */}
+
+          {/* Remove button — subtle, right-aligned, red on hover */}
           <button
             type="button"
             onClick={() => remove(index)}
-            className="mt-2 flex-shrink-0 text-sm px-2 py-1 rounded border border-destructive text-destructive hover:bg-destructive/10"
+            className="mt-3 flex-shrink-0 w-7 h-7 rounded border border-input text-muted-foreground hover:border-destructive hover:text-destructive hover:bg-destructive/5 flex items-center justify-center text-sm opacity-40 group-hover:opacity-100 transition-all"
             title="Remove block"
           >
             ×
@@ -131,38 +133,33 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
         </div>
       ))}
 
-      {/* Add block menu */}
-      <div className="relative self-start" ref={menuRef}>
+      {/* Add block */}
+      <div className="relative" ref={menuRef}>
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
-          className="text-sm px-3 py-1.5 rounded border border-input hover:bg-accent flex items-center gap-1"
+          className="w-full py-3 rounded-md border-2 border-dashed border-border hover:border-ring hover:bg-accent/50 text-sm font-medium text-muted-foreground hover:text-foreground flex items-center justify-center gap-2 transition-colors"
         >
-          + Add block {menuOpen ? "▴" : "▾"}
+          <span className="text-lg leading-none">+</span>
+          <span>Add block</span>
         </button>
         {menuOpen && (
-          <div className="absolute left-0 top-full mt-1 z-20 bg-background border border-border rounded shadow-md min-w-40 flex flex-col">
-            <button
-              type="button"
-              onClick={() => addBlock("richText")}
-              className="px-4 py-2 text-sm text-left hover:bg-accent"
-            >
-              Rich Text
-            </button>
-            <button
-              type="button"
-              onClick={() => addBlock("media")}
-              className="px-4 py-2 text-sm text-left hover:bg-accent"
-            >
-              Media
-            </button>
-            <button
-              type="button"
-              onClick={() => addBlock("specialComponent")}
-              className="px-4 py-2 text-sm text-left hover:bg-accent"
-            >
-              Special Component
-            </button>
+          <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-card border border-border rounded-md shadow-lg overflow-hidden">
+            {[
+              { type: "richText" as const, label: "Rich Text", desc: "Markdown with live preview" },
+              { type: "media" as const, label: "Media", desc: "Image with layout controls" },
+              { type: "specialComponent" as const, label: "Special Component", desc: "Built-in site components" },
+            ].map(({ type, label, desc }) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => addBlock(type)}
+                className="w-full px-4 py-3 text-left hover:bg-accent flex flex-col gap-0.5 transition-colors"
+              >
+                <span className="text-sm font-medium">{label}</span>
+                <span className="text-xs text-muted-foreground">{desc}</span>
+              </button>
+            ))}
           </div>
         )}
       </div>

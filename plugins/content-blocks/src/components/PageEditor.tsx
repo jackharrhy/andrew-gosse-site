@@ -20,25 +20,27 @@ interface SaveBarProps {
 function SaveBar({ saving, saveStatus, onSave, disabled, sticky }: SaveBarProps) {
   return (
     <div
-      className={`flex items-center gap-3 py-3 ${
+      className={`flex items-center gap-4 px-6 py-3 ${
         sticky
-          ? "sticky top-0 z-10 bg-background border-b border-border"
-          : "border-t border-border mt-4 pt-4"
+          ? "sticky top-0 z-10 bg-card border-b border-border shadow-sm"
+          : "border-t border-border mt-6 pt-4"
       }`}
     >
       <button
         type="button"
         onClick={onSave}
         disabled={disabled}
-        className="px-4 py-2 rounded bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-5 py-2 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
       >
         {saving ? "Saving…" : "Save & Publish"}
       </button>
       {saveStatus === "saved" && (
-        <span className="text-sm text-green-600 font-medium">Saved!</span>
+        <span className="text-sm text-green-600 font-medium flex items-center gap-1.5">
+          ✓ Saved
+        </span>
       )}
       {saveStatus === "error" && (
-        <span className="text-sm text-destructive font-medium">Save failed</span>
+        <span className="text-sm text-destructive font-medium">Save failed — try again</span>
       )}
     </div>
   );
@@ -68,30 +70,33 @@ function PageList() {
   }, []);
 
   if (loading) {
-    return <div className="p-6 text-muted-foreground">Loading pages…</div>;
+    return <div className="p-8 text-muted-foreground">Loading pages…</div>;
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Page Editor</h1>
-      <p className="text-sm text-muted-foreground">
-        Select a page to edit its blocks. To edit title, slug, or SEO, use the standard content editor.
-      </p>
+    <div className="max-w-2xl mx-auto p-8 flex flex-col gap-8">
+      <div>
+        <h1 className="text-2xl font-semibold mb-1">Page Editor</h1>
+        <p className="text-sm text-muted-foreground">
+          Select a page to edit its content blocks. To change the title, slug, or SEO settings, use the standard content editor.
+        </p>
+      </div>
 
       {homepage && (
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Homepage</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Homepage</h2>
           <a
             href={`/_emdash/admin/plugins/content-blocks/page-editor?id=${homepage.id}&collection=homepage`}
-            className="px-4 py-3 rounded border border-border hover:bg-accent text-sm font-medium"
+            className="px-4 py-3 rounded-md border border-border hover:bg-accent hover:border-accent-foreground/20 text-sm font-medium transition-colors flex items-center justify-between group"
           >
-            Homepage
+            <span>Homepage</span>
+            <span className="text-muted-foreground group-hover:text-foreground transition-colors">→</span>
           </a>
         </section>
       )}
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Pages</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Pages</h2>
         {pages.length === 0 && (
           <p className="text-sm text-muted-foreground">No pages found.</p>
         )}
@@ -99,9 +104,10 @@ function PageList() {
           <a
             key={page.id}
             href={`/_emdash/admin/plugins/content-blocks/page-editor?id=${page.id}&collection=pages`}
-            className="px-4 py-3 rounded border border-border hover:bg-accent text-sm font-medium"
+            className="px-4 py-3 rounded-md border border-border hover:bg-accent hover:border-accent-foreground/20 text-sm font-medium transition-colors flex items-center justify-between group"
           >
-            {(page.data?.page_slug as string) || page.slug || page.id}
+            <span>{(page.data?.page_slug as string) || page.slug || page.id}</span>
+            <span className="text-muted-foreground group-hover:text-foreground transition-colors">→</span>
           </a>
         ))}
       </section>
@@ -114,7 +120,6 @@ export function PageEditor() {
   const id = params.get("id");
   const collection = (params.get("collection") ?? "pages") as "pages" | "homepage";
 
-  // No id — show page list
   if (!id) {
     return <PageList />;
   }
@@ -162,7 +167,6 @@ function PageEditorInner({ id, collection }: InnerProps) {
         data: { ...originalData, blocks },
       });
       await publishContent(collection, id);
-      // Keep originalData in sync after save
       setOriginalData((prev) => ({ ...prev, blocks }));
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2500);
@@ -177,17 +181,17 @@ function PageEditorInner({ id, collection }: InnerProps) {
   const backHref = `/_emdash/admin/content/${collection}/${id}`;
 
   if (loading) {
-    return <div className="p-6 text-muted-foreground">Loading…</div>;
+    return <div className="p-8 text-muted-foreground">Loading…</div>;
   }
 
   if (errorMsg && blocks.length === 0) {
     return (
-      <div className="p-6 text-destructive">Failed to load page: {errorMsg}</div>
+      <div className="p-8 text-destructive">Failed to load page: {errorMsg}</div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 flex flex-col gap-6">
+    <div className="flex flex-col">
       <SaveBar
         sticky
         saving={saving}
@@ -196,31 +200,30 @@ function PageEditorInner({ id, collection }: InnerProps) {
         disabled={saving}
       />
 
-      <div className="flex items-center gap-3">
-        <a
-          href={backHref}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Back to {title}
-        </a>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-sm font-semibold">{title}</span>
-      </div>
-
-      <BlockList blocks={blocks} onChange={setBlocks} />
-
-      {saveStatus === "error" && errorMsg && (
-        <div className="rounded border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
-          {errorMsg}
+      <div className="max-w-3xl mx-auto w-full px-6 py-4 flex flex-col gap-6">
+        <div className="flex items-center gap-2 text-sm">
+          <a href={backHref} className="text-muted-foreground hover:text-foreground transition-colors">
+            ← {title}
+          </a>
+          <span className="text-border">/</span>
+          <span className="font-semibold text-foreground">Blocks</span>
         </div>
-      )}
 
-      <SaveBar
-        saving={saving}
-        saveStatus={saveStatus}
-        onSave={handleSave}
-        disabled={saving}
-      />
+        <BlockList blocks={blocks} onChange={setBlocks} />
+
+        {saveStatus === "error" && errorMsg && (
+          <div className="rounded-md border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
+            {errorMsg}
+          </div>
+        )}
+
+        <SaveBar
+          saving={saving}
+          saveStatus={saveStatus}
+          onSave={handleSave}
+          disabled={saving}
+        />
+      </div>
     </div>
   );
 }

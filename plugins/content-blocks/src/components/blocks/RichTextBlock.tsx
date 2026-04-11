@@ -29,25 +29,30 @@ export function RichTextBlock({ block, onChange }: Props) {
   );
 
   return (
-    <div className="rounded border border-border bg-card overflow-hidden">
-      <div className="px-3 py-1.5 border-b border-border bg-muted/40 flex items-center gap-2">
-        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Rich Text</span>
+    <div className="rounded-md border border-border bg-card overflow-hidden">
+      {/* Header */}
+      <div className="border-b border-border bg-muted/40 grid grid-cols-2 divide-x divide-border">
+        <div className="px-4 py-2 flex items-center gap-2">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Markdown</span>
+        </div>
+        <div className="px-4 py-2 flex items-center gap-2">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Preview</span>
+        </div>
       </div>
-      <div className="grid grid-cols-2 divide-x divide-border min-h-32" style={{ gridTemplateColumns: "1fr 1fr" }}>
-        {/* Left: markdown editor */}
-        <div className="p-3">
+      {/* Editor + Preview */}
+      <div className="grid grid-cols-2 divide-x divide-border" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <div className="p-4">
           <textarea
             ref={textareaRef}
             value={block.body ?? ""}
             onChange={handleChange}
-            placeholder="# Heading&#10;&#10;Paragraph text..."
-            className="w-full resize-none bg-transparent text-sm font-mono focus:outline-none min-h-32 leading-relaxed"
+            placeholder={"# Heading\n\nParagraph text..."}
+            className="w-full resize-none bg-transparent text-sm font-mono focus:outline-none leading-relaxed min-h-32"
             style={{ height: "auto" }}
           />
         </div>
-        {/* Right: live preview */}
         <div
-          className="p-3 prose prose-sm max-w-none text-sm overflow-auto min-h-32"
+          className="p-4 prose prose-sm max-w-none text-sm overflow-auto min-h-32"
           dangerouslySetInnerHTML={preview}
         />
       </div>

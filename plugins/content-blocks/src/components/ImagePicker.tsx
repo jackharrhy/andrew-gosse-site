@@ -23,51 +23,62 @@ export function ImagePicker({ value, onChange, label }: ImagePickerProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       <span className="text-sm font-medium">{label}</span>
-      <div className="flex items-center gap-3">
+
+      {/* Preview */}
+      <div className="relative">
         {value?.url ? (
           <img
             src={value.url}
             alt={value.alt}
-            className="h-16 w-16 rounded border border-input object-cover flex-shrink-0"
+            className="w-full max-h-48 rounded-md border border-input object-contain bg-muted/30"
           />
         ) : (
-          <div className="h-16 w-16 rounded border border-dashed border-input flex items-center justify-center text-muted-foreground text-xs flex-shrink-0">
-            No image
+          <div
+            onClick={() => setOpen(true)}
+            className="w-full h-32 rounded-md border-2 border-dashed border-input flex flex-col items-center justify-center gap-2 text-muted-foreground cursor-pointer hover:border-ring hover:bg-accent/50 transition-colors"
+          >
+            <span className="text-2xl">🖼</span>
+            <span className="text-sm">Click to select an image</span>
           </div>
         )}
-        <div className="flex flex-col gap-1">
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="px-4 py-2 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent transition-colors"
+        >
+          {value ? "Change image" : "Select image"}
+        </button>
+        {value && (
           <button
             type="button"
-            onClick={() => setOpen(true)}
-            className="text-sm px-3 py-1.5 rounded border border-input hover:bg-accent"
+            onClick={() => onChange(null)}
+            className="px-4 py-2 rounded-md border border-border text-sm text-muted-foreground hover:border-destructive hover:text-destructive hover:bg-destructive/5 transition-colors"
           >
-            {value ? "Change" : "Select image"}
+            Remove
           </button>
-          {value && (
-            <button
-              type="button"
-              onClick={() => onChange(null)}
-              className="text-sm px-3 py-1.5 rounded border border-destructive text-destructive hover:bg-destructive/10"
-            >
-              Remove
-            </button>
-          )}
-        </div>
+        )}
       </div>
+
+      {/* Alt text */}
       {value && (
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground">Alt text</label>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-muted-foreground">Alt text</label>
           <input
             type="text"
             value={value.alt}
             onChange={(e) => onChange({ ...value, alt: e.target.value })}
-            placeholder="Describe the image"
-            className="w-full rounded border border-input bg-transparent px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            placeholder="Describe the image for screen readers"
+            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       )}
+
       <MediaPickerModal
         open={open}
         onOpenChange={setOpen}
