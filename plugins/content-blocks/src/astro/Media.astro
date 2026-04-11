@@ -1,13 +1,15 @@
 ---
-// Renders a media block. Handles both:
-// - Migrated shape: { file: { url, alt }, ...layoutProps, adornments: [...] }
-// - Admin-edited shape: { file_url, file_alt, adornments (JSON string), ...layoutProps }
-import type { MediaBlock, AdornmentBlock } from "../../../src/types/emdash";
+// Renders a media block. Handles three adornment shapes:
+// 1. Library reference: { _adornmentName: "top left blue tape" } — resolved via fetchAdornmentLibrary()
+// 2. Legacy inline: { file: {...}, height: "2rem", ... } — used as-is (backward compat)
+// 3. Legacy JSON string (from old Block Kit editor) — parsed then treated as inline
+import type { MediaBlock, AdornmentBlock, AdornmentValue } from "@site/types/emdash";
+import { fetchAdornmentLibrary, isAdornmentRef } from "@site/lib/fetch-emdash";
 
 type FlatMediaNode = {
   file_url?: string;
   file_alt?: string;
-  adornments?: string | AdornmentBlock[];
+  adornments?: string | AdornmentValue[];
   width?: string;
   height?: string;
   padding?: string;
@@ -25,6 +27,9 @@ type Node = MediaBlock | FlatMediaNode;
 
 const node = Astro.props.node as Node;
 
+// Load adornment library for reference resolution (fast synchronous SQLite read)
+const adornmentLibrary = fetchAdornmentLibrary();
+
 // Normalise file regardless of shape
 const fileUrl =
   "file" in node && node.file?.url
@@ -40,20 +45,29 @@ const fileAlt =
     ? ((node as FlatMediaNode).file_alt ?? "")
     : "";
 
-// Normalise adornments — migrated data is an array, admin-edited is a JSON string
-let adornments: AdornmentBlock[] = [];
-const rawAdornments =
+// Normalise raw adornments array (handles JSON string from legacy Block Kit editor)
+let rawAdornments: AdornmentValue[] = [];
+const rawAdornmentsField =
   "adornments" in node ? (node as MediaBlock | FlatMediaNode).adornments : undefined;
 
-if (Array.isArray(rawAdornments)) {
-  adornments = rawAdornments as AdornmentBlock[];
-} else if (typeof rawAdornments === "string" && rawAdornments.trim()) {
+if (Array.isArray(rawAdornmentsField)) {
+  rawAdornments = rawAdornmentsField as AdornmentValue[];
+} else if (typeof rawAdornmentsField === "string" && rawAdornmentsField.trim()) {
   try {
-    adornments = JSON.parse(rawAdornments);
+    rawAdornments = JSON.parse(rawAdornmentsField) as AdornmentValue[];
   } catch {
     // invalid JSON — ignore
   }
 }
+
+// Resolve all adornments: references → library lookups, inline → pass through
+const adornments: AdornmentBlock[] = rawAdornments.flatMap((a) => {
+  if (isAdornmentRef(a)) {
+    const resolved = adornmentLibrary.get(a._adornmentName);
+    return resolved ? [resolved] : []; // silently skip unknown refs
+  }
+  return [a as AdornmentBlock]; // legacy inline
+});
 
 const rotation = typeof node.rotation === "number" ? node.rotation : 0;
 const border = typeof node.border === "string" ? node.border : undefined;
