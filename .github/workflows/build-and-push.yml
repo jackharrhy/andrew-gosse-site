@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm (needed to build emdash monorepo)
+        run: npm install -g pnpm
+
       - name: Clone emdash from GitHub
         run: git clone --depth=1 https://github.com/emdash-cms/emdash.git tmp/emdash
 
@@ -37,20 +40,7 @@ jobs:
 
       - name: Build and pack emdash packages
         if: steps.emdash-cache.outputs.cache-hit != 'true'
-        run: |
-          cd tmp/emdash
-          npm install -g pnpm
-          pnpm install --ignore-scripts
-          pnpm --filter @emdash-cms/auth build
-          pnpm --filter @emdash-cms/gutenberg-to-portable-text build
-          pnpm --filter @emdash-cms/admin build
-          pnpm --filter emdash build
-          mkdir -p ../emdash-packs
-          pnpm --filter emdash pack --pack-destination ../emdash-packs
-          pnpm --filter @emdash-cms/admin pack --pack-destination ../emdash-packs
-          cd ../emdash-packs
-          mv emdash-*.tgz emdash.tgz
-          mv emdash-cms-admin-*.tgz emdash-cms-admin.tgz
+        run: ./scripts/update-emdash.sh --no-pull
 
       - name: Install npm dependencies
         run: npm install

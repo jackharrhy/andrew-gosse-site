@@ -9,7 +9,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "ncu": "npm-check-updates",
-    "update-emdash": "cd tmp/emdash && git pull && pnpm install --ignore-scripts && pnpm --filter @emdash-cms/auth build && pnpm --filter @emdash-cms/gutenberg-to-portable-text build && pnpm --filter @emdash-cms/admin build && pnpm --filter emdash build && pnpm --filter emdash pack --pack-destination ../../tmp/emdash-packs && pnpm --filter @emdash-cms/admin pack --pack-destination ../../tmp/emdash-packs && cd ../../tmp/emdash-packs && mv emdash-*.tgz emdash.tgz && mv emdash-cms-admin-*.tgz emdash-cms-admin.tgz && cd ../.. && npm install"
+    "update-emdash": "./scripts/update-emdash.sh"
   },
   "dependencies": {
     "@andrew-gosse-site/plugin-content-blocks": "file:./plugins/content-blocks",
