@@ -20,10 +20,10 @@ interface SaveBarProps {
 function SaveBar({ saving, saveStatus, onSave, disabled, sticky }: SaveBarProps) {
   return (
     <div
-      className={`flex items-center gap-4 px-6 py-3 ${
+      className={`flex items-center gap-4 py-3 ${
         sticky
-          ? "sticky top-0 z-10 bg-card border-b border-border shadow-sm"
-          : "border-t border-border mt-6 pt-4"
+          ? "border-b border-border mb-2"
+          : "border-t border-border mt-2"
       }`}
     >
       <button
@@ -191,7 +191,7 @@ function PageEditorInner({ id, collection }: InnerProps) {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="max-w-3xl mx-auto w-full px-6 py-6 flex flex-col gap-6">
       <SaveBar
         sticky
         saving={saving}
@@ -200,7 +200,7 @@ function PageEditorInner({ id, collection }: InnerProps) {
         disabled={saving}
       />
 
-      <div className="max-w-3xl mx-auto w-full px-6 py-4 flex flex-col gap-6">
+      <div className="flex flex-col gap-6">
         <div className="flex items-center gap-2 text-sm">
           <a href={backHref} className="text-muted-foreground hover:text-foreground transition-colors">
             ← {title}

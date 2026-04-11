@@ -51,7 +51,7 @@ interface SaveBarProps {
 function SaveBar({ saving, saveStatus, onSave, disabled, sticky }: SaveBarProps) {
   return (
     <div
-      className={`flex items-center gap-4 px-6 py-3 ${sticky ? "sticky top-0 z-10 bg-card border-b border-border shadow-sm" : "border-t border-border mt-6 pt-4"}`}
+      className={`flex items-center gap-4 py-3 ${sticky ? "border-b border-border mb-2" : "border-t border-border mt-2"}`}
     >
       <button
         type="button"
@@ -139,9 +139,8 @@ export function SidebarEditor() {
   if (!state) return null;
 
   return (
-    <div className="flex flex-col">
-    <SaveBar sticky saving={saving} saveStatus={saveStatus} onSave={handleSave} disabled={saving || !state} />
     <div className="max-w-2xl mx-auto w-full px-6 py-6 flex flex-col gap-8">
+      <SaveBar sticky saving={saving} saveStatus={saveStatus} onSave={handleSave} disabled={saving || !state} />
       {/* Top Image */}
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Top Image</h2>
@@ -268,7 +267,6 @@ export function SidebarEditor() {
       )}
 
       <SaveBar saving={saving} saveStatus={saveStatus} onSave={handleSave} disabled={saving || !state} />
-    </div>
     </div>
   );
 }
