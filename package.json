@@ -8,7 +8,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "ncu": "npm-check-updates"
+    "ncu": "npm-check-updates",
+    "tea:seed-users": "tsx scripts/tea-seed-users.ts",
+    "tea:migrate-from-strapi": "tsx scripts/migrate-from-strapi-to-teacms.ts"
   },
   "dependencies": {
     "@astrojs/node": "^10.0.4",
@@ -33,6 +35,7 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
     "@types/bcryptjs": "^2.4.6",
-    "npm-check-updates": "^20.0.1"
+    "npm-check-updates": "^20.0.1",
+    "tsx": "^4.21.0"
   }
 }
