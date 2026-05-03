@@ -5,9 +5,7 @@ import {
   Routes,
   Route,
   Navigate,
-  useNavigate,
   useLocation,
-  useParams,
 } from "react-router-dom";
 import { api } from "./lib/api";
 import { Login } from "./components/Login";
@@ -17,6 +15,10 @@ import { MediaBrowserPage } from "./components/MediaBrowser";
 import { SiteEditor } from "./components/SiteEditor";
 import { SidebarEditor } from "./components/SidebarEditor";
 import { AdornmentLibrary } from "./components/AdornmentLibrary";
+import { PageList } from "./components/PageList";
+import { PageEditor } from "./components/PageEditor";
+import { HomepageEditor } from "./components/HomepageEditor";
+import { SeoAudit } from "./components/SeoAudit";
 
 interface User {
   id: number;
@@ -101,11 +103,6 @@ function Stub({ name }: { name: string }) {
   );
 }
 
-function PageEditorStub() {
-  const { slug } = useParams<{ slug: string }>();
-  return <Stub name={`Page editor: ${slug ?? "(new)"}`} />;
-}
-
 export default function App() {
   return (
     <BrowserRouter>
@@ -127,7 +124,7 @@ export default function App() {
             element={
               <RequireAuth>
                 <AuthedShell>
-                  <Stub name="Pages" />
+                  <PageList />
                 </AuthedShell>
               </RequireAuth>
             }
@@ -137,7 +134,7 @@ export default function App() {
             element={
               <RequireAuth>
                 <AuthedShell>
-                  <PageEditorStub />
+                  <PageEditor />
                 </AuthedShell>
               </RequireAuth>
             }
@@ -147,7 +144,7 @@ export default function App() {
             element={
               <RequireAuth>
                 <AuthedShell>
-                  <Stub name="Homepage" />
+                  <HomepageEditor />
                 </AuthedShell>
               </RequireAuth>
             }
@@ -197,7 +194,7 @@ export default function App() {
             element={
               <RequireAuth>
                 <AuthedShell>
-                  <Stub name="SEO Audit" />
+                  <SeoAudit />
                 </AuthedShell>
               </RequireAuth>
             }
