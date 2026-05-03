@@ -22,17 +22,20 @@
     "@types/better-sqlite3": "^7.6.13",
     "astro": "^6.1.5",
     "astro-meta-tags": "^0.4.1",
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.8.0",
     "emdash": "file:./tmp/emdash-packs/emdash.tgz",
     "marked": "^18.0.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "tailwindcss": "^4.2.2",
+    "ulid": "^3.0.2",
     "y-protocols": "^1.0.7",
     "yjs": "^13.6.30"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
+    "@types/bcryptjs": "^2.4.6",
     "npm-check-updates": "^20.0.1"
   }
 }
