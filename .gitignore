@@ -19,13 +19,14 @@ pnpm-debug.log*
 .DS_Store
 .idea/
 
-# EmDash runtime data
+# TeaCMS runtime data
 data/
-emdash-env.d.ts
 
-# EmDash volume data
-emdash_data/*.db
-emdash_data/uploads/
+# TeaCMS volume data
+tea_data/*.db
+tea_data/*.db-shm
+tea_data/*.db-wal
+tea_data/uploads/
 
 # misc
 tmp

@@ -5,6 +5,9 @@ services:
     ports:
       - "127.0.0.1:4322:4321"
     environment:
-      - EMDASH_SECRET=${EMDASH_SECRET}
+      - TEA_ADMIN_EMAIL_1=${TEA_ADMIN_EMAIL_1:-}
+      - TEA_ADMIN_PASSWORD_1=${TEA_ADMIN_PASSWORD_1:-}
+      - TEA_ADMIN_EMAIL_2=${TEA_ADMIN_EMAIL_2:-}
+      - TEA_ADMIN_PASSWORD_2=${TEA_ADMIN_PASSWORD_2:-}
     volumes:
-      - ./emdash_data:/app/data
+      - ./tea_data:/app/data

@@ -21,33 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install pnpm (needed to build emdash monorepo)
-        run: npm install -g pnpm
-
-      - name: Clone emdash from GitHub
-        run: git clone --depth=1 https://github.com/emdash-cms/emdash.git tmp/emdash
-
-      - name: Get emdash commit SHA for cache key
-        id: emdash-sha
-        run: echo "sha=$(git -C tmp/emdash rev-parse HEAD)" >> $GITHUB_OUTPUT
-
-      - name: Get patches hash for cache key
-        id: patches-hash
-        run: echo "hash=$(find patches/ -name '*.patch' -exec sha256sum {} \; | sha256sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-
-      - name: Cache emdash tarballs
-        id: emdash-cache
-        uses: actions/cache@v4
-        with:
-          path: tmp/emdash-packs
-          key: emdash-packs-${{ steps.emdash-sha.outputs.sha }}-${{ steps.patches-hash.outputs.hash }}
-
-      - name: Build and pack emdash packages
-        if: steps.emdash-cache.outputs.cache-hit != 'true'
-        run: ./scripts/update-emdash.sh --no-pull
-
-      - name: Install npm dependencies
-        run: npm install
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
