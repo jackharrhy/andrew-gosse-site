@@ -1,5 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+// src/tea/admin/App.tsx
+import * as React from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+  useParams,
+} from "react-router-dom";
+import { api } from "./lib/api";
+import { Login } from "./components/Login";
+import { Layout } from "./components/Layout";
+import { Dashboard } from "./components/Dashboard";
 
 interface User {
   id: number;
@@ -9,179 +22,179 @@ interface User {
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
+  setUser: (u: User | null) => void;
   refresh: () => Promise<void>;
 }
 
-import { createContext, useContext } from "react";
-
-const AuthContext = createContext<AuthContextValue>({
+const AuthContext = React.createContext<AuthContextValue>({
   user: null,
   loading: true,
+  setUser: () => {},
   refresh: async () => {},
 });
 
 export function useAuth() {
-  return useContext(AuthContext);
+  return React.useContext(AuthContext);
 }
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = React.useState<User | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
-  const refresh = async () => {
+  const refresh = React.useCallback(async () => {
     try {
-      const res = await fetch("/tea/api/auth/me", { credentials: "include" });
-      if (res.ok) {
-        const data = (await res.json()) as { user: User };
-        setUser(data.user);
-      } else {
-        setUser(null);
-      }
+      const r = await api.get<{ user: User }>("/auth/me");
+      setUser(r.user);
     } catch {
       setUser(null);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    refresh();
   }, []);
 
+  React.useEffect(() => {
+    refresh();
+  }, [refresh]);
+
   return (
-    <AuthContext.Provider value={{ user, loading, refresh }}>
+    <AuthContext.Provider value={{ user, loading, setUser, refresh }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-function Placeholder({ name }: { name: string }) {
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">{name}</h1>
-      <p className="text-gray-600 mt-2">Coming soon.</p>
-    </div>
-  );
-}
-
-function LoginPlaceholder() {
-  const { user, loading, refresh } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  if (loading) return <div className="p-8">Loading…</div>;
+function LoginRoute() {
+  const { user, loading, setUser } = useAuth();
+  if (loading) return <div className="p-6 text-muted-foreground">Loading…</div>;
   if (user) return <Navigate to="/tea/admin" replace />;
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSubmitting(true);
-    try {
-      const res = await fetch("/tea/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(data.error || "Login failed");
-        return;
-      }
-      await refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form onSubmit={onSubmit} className="bg-white p-8 rounded shadow w-full max-w-sm flex flex-col gap-4">
-        <h1 className="text-xl font-bold">TeaCMS Login</h1>
-        {error && <div className="text-red-600 text-sm">{error}</div>}
-        <label className="flex flex-col gap-1 text-sm">
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="border rounded px-2 py-1"
-            required
-            autoFocus
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="border rounded px-2 py-1"
-            required
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="bg-black text-white py-2 rounded disabled:opacity-50"
-        >
-          {submitting ? "Signing in…" : "Sign in"}
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function DashboardPlaceholder() {
-  const { user, refresh } = useAuth();
-
-  const onLogout = async () => {
-    await fetch("/tea/api/auth/logout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
-    await refresh();
-  };
-
-  return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">TeaCMS</h1>
-        <div className="flex items-center gap-4 text-sm">
-          <span>{user?.email}</span>
-          <button onClick={onLogout} className="underline">
-            Sign out
-          </button>
-        </div>
-      </div>
-      <p className="text-gray-600">Admin shell ready. Editors will land here.</p>
-    </div>
-  );
+  return <Login onLogin={setUser} />;
 }
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="p-8">Loading…</div>;
-  if (!user) return <Navigate to="/tea/admin/login" replace />;
+  const location = useLocation();
+  if (loading) return <div className="p-6 text-muted-foreground">Loading…</div>;
+  if (!user) {
+    return <Navigate to="/tea/admin/login" state={{ from: location }} replace />;
+  }
   return <>{children}</>;
+}
+
+function AuthedShell({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  if (!user) return null;
+  return <Layout user={user}>{children}</Layout>;
+}
+
+function Stub({ name }: { name: string }) {
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-semibold mb-2">{name}</h1>
+      <p className="text-muted-foreground text-sm">
+        Editor for this route is implemented in a later task.
+      </p>
+    </div>
+  );
+}
+
+function PageEditorStub() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Stub name={`Page editor: ${slug ?? "(new)"}`} />;
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <Routes>
-          <Route path="/tea/admin/login" element={<LoginPlaceholder />} />
+          <Route path="/tea/admin/login" element={<LoginRoute />} />
           <Route
             path="/tea/admin"
             element={
               <RequireAuth>
-                <DashboardPlaceholder />
+                <AuthedShell>
+                  <Dashboard />
+                </AuthedShell>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/tea/admin/pages"
+            element={
+              <RequireAuth>
+                <AuthedShell>
+                  <Stub name="Pages" />
+                </AuthedShell>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/tea/admin/pages/:slug"
+            element={
+              <RequireAuth>
+                <AuthedShell>
+                  <PageEditorStub />
+                </AuthedShell>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/tea/admin/homepage"
+            element={
+              <RequireAuth>
+                <AuthedShell>
+                  <Stub name="Homepage" />
+                </AuthedShell>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/tea/admin/sidebar"
+            element={
+              <RequireAuth>
+                <AuthedShell>
+                  <Stub name="Sidebar" />
+                </AuthedShell>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/tea/admin/site"
+            element={
+              <RequireAuth>
+                <AuthedShell>
+                  <Stub name="Site" />
+                </AuthedShell>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/tea/admin/adornments"
+            element={
+              <RequireAuth>
+                <AuthedShell>
+                  <Stub name="Adornments" />
+                </AuthedShell>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/tea/admin/media"
+            element={
+              <RequireAuth>
+                <AuthedShell>
+                  <Stub name="Media" />
+                </AuthedShell>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/tea/admin/seo"
+            element={
+              <RequireAuth>
+                <AuthedShell>
+                  <Stub name="SEO Audit" />
+                </AuthedShell>
               </RequireAuth>
             }
           />
@@ -189,12 +202,14 @@ export default function App() {
             path="/tea/admin/*"
             element={
               <RequireAuth>
-                <Placeholder name="Not found" />
+                <AuthedShell>
+                  <Stub name="Not found" />
+                </AuthedShell>
               </RequireAuth>
             }
           />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
