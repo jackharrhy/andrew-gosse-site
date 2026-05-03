@@ -1,14 +1,190 @@
 ---
-import { PortableText } from "emdash/ui";
-import type { Block } from "../types/emdash";
+import RisoColors from "./RisoColors.astro";
+import { getAdornmentLibrary, getMediaUrl } from "../lib/fetch-tea";
+import type {
+  Block,
+  InlineContent,
+  MediaBlock,
+  ResolvedAdornment,
+} from "../types/blocks";
 
 interface Props {
   blocks: Block[];
 }
 
 const { blocks } = Astro.props;
+const adornments = getAdornmentLibrary();
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderInline(content: InlineContent[] | undefined): string {
+  if (!content) return "";
+  return content
+    .map((node) => {
+      if (node.type === "link") {
+        const inner = renderInline(node.content);
+        return `<a href="${escapeHtml(node.href)}">${inner}</a>`;
+      }
+      let html = escapeHtml(node.text);
+      const styles = node.styles ?? {};
+      if (styles.bold) html = `<strong>${html}</strong>`;
+      if (styles.italic) html = `<em>${html}</em>`;
+      if (styles.underline) html = `<u>${html}</u>`;
+      if (styles.strike) html = `<s>${html}</s>`;
+      if (styles.code) html = `<code>${html}</code>`;
+      return html;
+    })
+    .join("");
+}
+
+function buildAdornmentStyle(a: ResolvedAdornment): Record<string, string | undefined> {
+  const css = a.css;
+  const rot = typeof css.rotation === "number" ? css.rotation : 0;
+  return {
+    position: "absolute",
+    left: css.left,
+    top: css.top,
+    bottom: css.bottom,
+    right: css.right,
+    filter: css.filter,
+    transform: rot !== 0 ? `rotate(${rot}deg)` : undefined,
+    border: css.border,
+    width: css.width,
+    maxHeight: css.height,
+    padding: css.padding,
+    margin: css.margin,
+  };
+}
+
+function buildMediaStyles(props: MediaBlock["props"]): {
+  container: Record<string, string | undefined>;
+  img: Record<string, string | undefined>;
+} {
+  const rotation = props.rotation ? Number(props.rotation) : 0;
+  const border = props.border || undefined;
+  const margin = props.margin || "0 auto";
+  return {
+    container: {
+      transform: rotation !== 0 ? `rotate(${rotation}deg)` : undefined,
+      width: props.width || undefined,
+      maxWidth: "100%",
+      padding: props.padding || undefined,
+      margin,
+    },
+    img: {
+      left: props.left || undefined,
+      top: props.top || undefined,
+      bottom: props.bottom || undefined,
+      right: props.right || undefined,
+      filter: props.filter || undefined,
+      transform: rotation !== 0 ? `rotate(${rotation}deg)` : undefined,
+      border,
+      width: props.width || undefined,
+      height: "auto",
+      maxHeight: props.height || undefined,
+      padding: props.padding || undefined,
+      margin,
+    },
+  };
+}
+
+function parseAdornmentRefs(json: string): { adornmentName: string }[] {
+  try {
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 ---
 
 <article class="prose lg:prose-xl w-full flex flex-col gap-4">
-  <PortableText value={blocks as any} />
+  {
+    blocks.map((block) => {
+      if (block.type === "paragraph") {
+        return <p set:html={renderInline(block.content)} />;
+      }
+      if (block.type === "heading") {
+        const level = block.props.level;
+        if (level === 1) return <h1 set:html={renderInline(block.content)} />;
+        if (level === 2) return <h2 set:html={renderInline(block.content)} />;
+        return <h3 set:html={renderInline(block.content)} />;
+      }
+      if (block.type === "bulletListItem") {
+        return <ul><li set:html={renderInline(block.content)} /></ul>;
+      }
+      if (block.type === "numberedListItem") {
+        return <ol><li set:html={renderInline(block.content)} /></ol>;
+      }
+      if (block.type === "quote") {
+        return <blockquote set:html={renderInline(block.content)} />;
+      }
+      if (block.type === "media") {
+        const props = block.props;
+        const url = getMediaUrl(props.mediaId) ?? "";
+        const styles = buildMediaStyles(props);
+        const refs = parseAdornmentRefs(props.adornments || "[]");
+        const resolvedAdornments = refs
+          .map((r) => adornments.get(r.adornmentName))
+          .filter((a): a is ResolvedAdornment => a !== undefined);
+
+        if (resolvedAdornments.length > 0) {
+          return (
+            <div style={styles.container} class="image-with-adornments relative not-prose">
+              <img
+                src={url}
+                alt={props.alt}
+                style={{
+                  filter: props.filter || undefined,
+                  maxHeight: props.height || undefined,
+                  border: props.border || undefined,
+                }}
+              />
+              {resolvedAdornments.map((a) => (
+                <img src={a.url} alt={a.alt ?? ""} style={buildAdornmentStyle(a)} />
+              ))}
+            </div>
+          );
+        }
+        return <img src={url} alt={props.alt} style={styles.img} />;
+      }
+      if (block.type === "special" && block.props.type === "riso_colors") {
+        return <RisoColors />;
+      }
+      return null;
+    })
+  }
 </article>
+
+<style>
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .image-with-adornments {
+    display: block;
+    max-width: 100%;
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
+
+  .image-with-adornments > img:first-child {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .image-with-adornments > img:not(:first-child) {
+    pointer-events: none;
+    max-width: none;
+  }
+</style>
