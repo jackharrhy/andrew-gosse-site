@@ -108,7 +108,7 @@ export function PageEditor() {
       />
 
       <div className="rounded-md border border-border bg-background min-h-96">
-        <BlockNoteView editor={editor} />
+        <BlockNoteView editor={editor} theme="light" />
       </div>
 
       <details className="rounded-md border border-border bg-card">
