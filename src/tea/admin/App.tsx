@@ -14,6 +14,9 @@ import { Login } from "./components/Login";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./components/Dashboard";
 import { MediaBrowserPage } from "./components/MediaBrowser";
+import { SiteEditor } from "./components/SiteEditor";
+import { SidebarEditor } from "./components/SidebarEditor";
+import { AdornmentLibrary } from "./components/AdornmentLibrary";
 
 interface User {
   id: number;
@@ -154,7 +157,7 @@ export default function App() {
             element={
               <RequireAuth>
                 <AuthedShell>
-                  <Stub name="Sidebar" />
+                  <SidebarEditor />
                 </AuthedShell>
               </RequireAuth>
             }
@@ -164,7 +167,7 @@ export default function App() {
             element={
               <RequireAuth>
                 <AuthedShell>
-                  <Stub name="Site" />
+                  <SiteEditor />
                 </AuthedShell>
               </RequireAuth>
             }
@@ -174,7 +177,7 @@ export default function App() {
             element={
               <RequireAuth>
                 <AuthedShell>
-                  <Stub name="Adornments" />
+                  <AdornmentLibrary />
                 </AuthedShell>
               </RequireAuth>
             }
