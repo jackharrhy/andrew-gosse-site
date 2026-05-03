@@ -13,6 +13,7 @@ import { api } from "./lib/api";
 import { Login } from "./components/Login";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./components/Dashboard";
+import { MediaBrowserPage } from "./components/MediaBrowser";
 
 interface User {
   id: number;
@@ -183,7 +184,7 @@ export default function App() {
             element={
               <RequireAuth>
                 <AuthedShell>
-                  <Stub name="Media" />
+                  <MediaBrowserPage />
                 </AuthedShell>
               </RequireAuth>
             }
