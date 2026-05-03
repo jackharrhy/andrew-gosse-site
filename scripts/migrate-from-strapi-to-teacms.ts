@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 import bcrypt from "bcryptjs";
 import { applySchema } from "../src/tea/db/schema.js";
+import { markdownToBlocks } from "./markdown-to-blocks.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -261,14 +262,12 @@ async function main() {
             "SELECT body FROM components_shared_rich_texts WHERE id = ?"
           )
           .get(cmp.cmp_id);
-        if (!row) continue;
-        result.push({
-          id: ulid(),
-          type: "paragraph",
-          props: {},
-          content: [{ type: "text", text: row.body, styles: {} }],
-          children: [],
-        });
+        if (!row || !row.body) continue;
+        // Convert markdown (possibly with embedded HTML) into native blocks.
+        // Anything containing raw HTML falls through to a `markdown` escape
+        // hatch block so the styling is preserved exactly.
+        const converted = markdownToBlocks(row.body);
+        for (const b of converted) result.push(b);
         continue;
       }
       if (cmp.component_type === "shared.media") {

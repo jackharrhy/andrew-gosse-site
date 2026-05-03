@@ -23,6 +23,7 @@
     "astro-meta-tags": "^0.4.1",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.8.0",
+    "marked": "^18.0.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.2",

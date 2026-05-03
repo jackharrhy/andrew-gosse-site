@@ -34,10 +34,21 @@ export interface TeaHomepage {
   seo: TeaSeo;
 }
 
+export interface TeaSidebarItem {
+  text: string;
+  pageSlug: string;
+}
+
+export interface TeaSidebarCategory {
+  categoryTitle: string | null;
+  backgroundImageUrl: string | null;
+  items: TeaSidebarItem[];
+}
+
 export interface TeaSidebar {
   topImageUrl: string | null;
   topImageAlt: string | null;
-  categories: SidebarCategory[];
+  categories: TeaSidebarCategory[];
   links: SidebarLink[];
 }
 
@@ -139,10 +150,16 @@ export function getSidebar(): TeaSidebar {
       "SELECT top_image_id, categories, links FROM sidebar WHERE id = 'sidebar'"
     )
     .get();
+  const rawCategories = row ? (JSON.parse(row.categories) as SidebarCategory[]) : [];
+  const categories: TeaSidebarCategory[] = rawCategories.map((c) => ({
+    categoryTitle: c.categoryTitle ?? null,
+    backgroundImageUrl: getMediaUrl(c.backgroundImageId ?? null),
+    items: c.items,
+  }));
   return {
     topImageUrl: getMediaUrl(row?.top_image_id ?? null),
     topImageAlt: getMediaAlt(row?.top_image_id ?? null),
-    categories: row ? (JSON.parse(row.categories) as SidebarCategory[]) : [],
+    categories,
     links: row ? (JSON.parse(row.links) as SidebarLink[]) : [],
   };
 }

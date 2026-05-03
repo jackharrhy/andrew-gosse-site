@@ -1,4 +1,5 @@
 ---
+import { marked } from "marked";
 import RisoColors from "./RisoColors.astro";
 import { getAdornmentLibrary, getMediaUrl } from "../lib/fetch-tea";
 import type {
@@ -39,9 +40,52 @@ function renderInline(content: InlineContent[] | undefined): string {
       if (styles.underline) html = `<u>${html}</u>`;
       if (styles.strike) html = `<s>${html}</s>`;
       if (styles.code) html = `<code>${html}</code>`;
+      // BlockNote's textColor / backgroundColor styles
+      const inlineStyles: string[] = [];
+      if (styles.textColor && styles.textColor !== "default") {
+        inlineStyles.push(`color:${styles.textColor}`);
+      }
+      if (styles.backgroundColor && styles.backgroundColor !== "default") {
+        inlineStyles.push(`background-color:${styles.backgroundColor}`);
+      }
+      if (inlineStyles.length > 0) {
+        html = `<span style="${inlineStyles.join(";")}">${html}</span>`;
+      }
       return html;
     })
     .join("");
+}
+
+// Group consecutive list items into a single grouped item so we can wrap
+// them in a single <ul>/<ol>. Returns a flat list where runs of same-type
+// list items are bundled.
+type RenderItem =
+  | { kind: "block"; block: Block }
+  | { kind: "list"; ordered: boolean; items: (Block & { type: "bulletListItem" | "numberedListItem" })[] };
+
+function groupBlocks(blocks: Block[]): RenderItem[] {
+  const out: RenderItem[] = [];
+  let run: { ordered: boolean; items: (Block & { type: "bulletListItem" | "numberedListItem" })[] } | null = null;
+  for (const block of blocks) {
+    const isBullet = block.type === "bulletListItem";
+    const isNumbered = block.type === "numberedListItem";
+    if (isBullet || isNumbered) {
+      const ordered = isNumbered;
+      if (!run || run.ordered !== ordered) {
+        if (run) out.push({ kind: "list", ...run });
+        run = { ordered, items: [] };
+      }
+      run.items.push(block as Block & { type: "bulletListItem" | "numberedListItem" });
+      continue;
+    }
+    if (run) {
+      out.push({ kind: "list", ...run });
+      run = null;
+    }
+    out.push({ kind: "block", block });
+  }
+  if (run) out.push({ kind: "list", ...run });
+  return out;
 }
 
 function buildAdornmentStyle(a: ResolvedAdornment): Record<string, string | undefined> {
@@ -107,7 +151,13 @@ function parseAdornmentRefs(json: string): { adornmentName: string }[] {
 
 <article class="prose lg:prose-xl w-full flex flex-col gap-4">
   {
-    blocks.map((block) => {
+    groupBlocks(blocks).map((item) => {
+      if (item.kind === "list") {
+        const inner = item.items.map((li) => `<li>${renderInline(li.content)}</li>`).join("");
+        if (item.ordered) return <ol set:html={inner} />;
+        return <ul set:html={inner} />;
+      }
+      const block = item.block;
       if (block.type === "paragraph") {
         return <p set:html={renderInline(block.content)} />;
       }
@@ -117,14 +167,17 @@ function parseAdornmentRefs(json: string): { adornmentName: string }[] {
         if (level === 2) return <h2 set:html={renderInline(block.content)} />;
         return <h3 set:html={renderInline(block.content)} />;
       }
-      if (block.type === "bulletListItem") {
-        return <ul><li set:html={renderInline(block.content)} /></ul>;
-      }
-      if (block.type === "numberedListItem") {
-        return <ol><li set:html={renderInline(block.content)} /></ol>;
-      }
       if (block.type === "quote") {
         return <blockquote set:html={renderInline(block.content)} />;
+      }
+      if (block.type === "divider") {
+        return <hr />;
+      }
+      if (block.type === "markdown") {
+        // Markdown escape hatch: full markdown + raw HTML.
+        // marked is configured permissive — embedded HTML is allowed through.
+        const html = marked.parse(block.props.body, { async: false }) as string;
+        return <Fragment set:html={html} />;
       }
       if (block.type === "media") {
         const props = block.props;

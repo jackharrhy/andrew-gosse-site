@@ -2,6 +2,7 @@
 import { BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
 import { mediaBlock } from "./MediaBlock";
 import { specialBlock } from "./SpecialBlock";
+import { markdownBlock } from "./MarkdownBlock";
 
 // `createReactBlockSpec` returns a factory `(options?) => BlockSpec`.
 // Call each factory to produce the actual BlockSpec that BlockNoteSchema expects.
@@ -10,6 +11,7 @@ export const teaBlockSchema = BlockNoteSchema.create({
     ...defaultBlockSpecs,
     media: mediaBlock(),
     special: specialBlock(),
+    markdown: markdownBlock(),
   },
 });
 

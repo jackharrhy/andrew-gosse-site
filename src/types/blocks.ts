@@ -98,6 +98,24 @@ export interface SpecialBlock {
   children: Block[];
 }
 
+// Custom: markdown escape hatch — body is markdown + raw HTML, rendered via marked
+export interface MarkdownBlock {
+  id: string;
+  type: "markdown";
+  props: { body: string };
+  content: [];
+  children: Block[];
+}
+
+// Custom: horizontal rule
+export interface DividerBlock {
+  id: string;
+  type: "divider";
+  props: object;
+  content: [];
+  children: Block[];
+}
+
 export type Block =
   | ParagraphBlock
   | HeadingBlock
@@ -105,7 +123,9 @@ export type Block =
   | NumberedListItemBlock
   | QuoteBlock
   | MediaBlock
-  | SpecialBlock;
+  | SpecialBlock
+  | MarkdownBlock
+  | DividerBlock;
 
 // Reference to a named adornment (parsed from MediaBlock.props.adornments JSON)
 export interface AdornmentRef {
