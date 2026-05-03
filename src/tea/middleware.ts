@@ -1,12 +1,12 @@
 import { defineMiddleware } from "astro:middleware";
 import { getSessionIdFromRequest, validateSession } from "./auth.js";
 
-const ADMIN_PREFIX = "/_tea/admin";
-const LOGIN_PATH = "/_tea/admin/login";
+const ADMIN_PREFIX = "/tea/admin";
+const LOGIN_PATH = "/tea/admin/login";
 const PUBLIC_API_PATHS = [
-  "/_tea/api/auth/login",
-  "/_tea/api/auth/me",
-  "/_tea/api/media/file",
+  "/tea/api/auth/login",
+  "/tea/api/auth/me",
+  "/tea/api/media/file",
 ];
 
 function isProtectedAdmin(pathname: string): boolean {
@@ -15,7 +15,7 @@ function isProtectedAdmin(pathname: string): boolean {
 }
 
 function isProtectedApi(pathname: string): boolean {
-  if (!pathname.startsWith("/_tea/api")) return false;
+  if (!pathname.startsWith("/tea/api")) return false;
   return !PUBLIC_API_PATHS.some((p) => pathname.startsWith(p));
 }
 
