@@ -1,18 +1,17 @@
 ---
 import BlockRenderer from "../components/BlockRenderer.astro";
 import Layout from "../layouts/Layout.astro";
-import { fetchHomepage } from "../lib/fetch-emdash";
-import type { Block } from "../types/emdash";
+import { getHomepage } from "../lib/fetch-tea";
 
-const { data: homepage, seo } = await fetchHomepage();
+const homepage = getHomepage();
 ---
 
 <Layout
   title={null}
-  description={seo?.description}
-  seoImageUrl={seo?.image}
-  noIndex={seo?.noIndex}
-  canonicalOverride={seo?.canonical}
+  description={homepage.seo.description}
+  seoImageUrl={homepage.seo.image_url}
+  noIndex={homepage.seo.no_index}
+  canonicalOverride={homepage.seo.canonical}
 >
-  <BlockRenderer blocks={(homepage.blocks ?? []) as Block[]} />
+  <BlockRenderer blocks={homepage.blocks} />
 </Layout>

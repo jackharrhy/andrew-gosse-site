@@ -2,13 +2,11 @@
 import { ClientRouter } from "astro:transitions";
 import Sidebar from "../components/Sidebar.astro";
 import "../styles/global.css";
-import { fetchSite } from "../lib/fetch-emdash";
+import { getSite, getSidebar } from "../lib/fetch-tea";
 
 const SITE_NAME = "Andrew Gosse Composer";
 
 interface Props {
-  // Page-specific title. Do NOT include the site name — it's appended automatically.
-  // e.g. "About" → renders as "About | Andrew Gosse Composer"
   title?: string | null;
   description?: string | null;
   seoImageUrl?: string | null;
@@ -16,7 +14,8 @@ interface Props {
   canonicalOverride?: string | null;
 }
 
-const { site, sidebar } = await fetchSite();
+const site = getSite();
+const sidebar = getSidebar();
 const { title, description, seoImageUrl, noIndex, canonicalOverride } = Astro.props;
 
 const canonicalUrl = canonicalOverride ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;

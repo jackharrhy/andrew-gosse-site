@@ -1,8 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import BlockRenderer from "../components/BlockRenderer.astro";
-import { fetchPage } from "../lib/fetch-emdash";
-import type { Block } from "../types/emdash";
+import { getPage } from "../lib/fetch-tea";
 
 const { slug } = Astro.params;
 
@@ -10,29 +9,26 @@ if (!slug) {
   return Astro.redirect("/");
 }
 
-const result = await fetchPage(slug);
+const page = getPage(slug);
 
-if (!result) {
+if (!page) {
   return new Response(null, { status: 404 });
 }
 
-const { data: page, seo } = result;
-
-// Format slug as readable title fallback: "game-audio" → "Game Audio"
 const slugTitle = slug
   .split("-")
   .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
   .join(" ");
 
-const pageTitle = seo?.title || slugTitle;
+const pageTitle = page.seo.title || page.title || slugTitle;
 ---
 
 <Layout
   title={pageTitle}
-  description={seo?.description}
-  seoImageUrl={seo?.image}
-  noIndex={seo?.noIndex}
-  canonicalOverride={seo?.canonical}
+  description={page.seo.description}
+  seoImageUrl={page.seo.image_url}
+  noIndex={page.seo.no_index}
+  canonicalOverride={page.seo.canonical}
 >
-  <BlockRenderer blocks={(page.blocks ?? []) as Block[]} />
+  <BlockRenderer blocks={page.blocks} />
 </Layout>
