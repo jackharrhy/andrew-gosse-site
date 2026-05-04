@@ -1,4 +1,4 @@
-name: Build and Push Docker Images to ghcr.io
+name: Build and Push Docker Image
 
 env:
   REGISTRY: ghcr.io
@@ -9,26 +9,8 @@ on:
       - main
 
 jobs:
-  detect-changes:
+  build-and-push:
     runs-on: ubuntu-latest
-    outputs:
-      astro-changed: ${{ steps.changes.outputs.astro }}
-      strapi-changed: ${{ steps.changes.outputs.strapi }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: changes
-        with:
-          filters: |
-            astro:
-              - 'astro-site/**'
-            strapi:
-              - 'strapi/**'
-
-  build-and-push-images:
-    runs-on: ubuntu-latest
-    needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.astro-changed == 'true' || needs.detect-changes.outputs.strapi-changed == 'true' }}
 
     permissions:
       contents: read
@@ -36,25 +18,14 @@ jobs:
       id-token: write
       attestations: write
 
-    strategy:
-      matrix:
-        include:
-          - name: astro
-            context: ./astro-site
-            image_suffix: -astro
-            condition: ${{ needs.detect-changes.outputs.astro-changed == 'true' }}
-          - name: strapi
-            context: ./strapi
-            image_suffix: -strapi
-            condition: ${{ needs.detect-changes.outputs.strapi-changed == 'true' }}
-
     steps:
       - uses: actions/checkout@v4
-        if: ${{ matrix.condition }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
-        if: ${{ matrix.condition }}
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -62,16 +33,14 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        if: ${{ matrix.condition }}
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}${{ matrix.image_suffix }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
-        if: ${{ matrix.condition }}
         with:
-          context: ${{ matrix.context }}
+          context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

@@ -1,0 +1,34 @@
+---
+import Layout from "../layouts/Layout.astro";
+import BlockRenderer from "../components/BlockRenderer.astro";
+import { getPage } from "../lib/fetch-tea";
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect("/");
+}
+
+const page = getPage(slug);
+
+if (!page) {
+  return new Response(null, { status: 404 });
+}
+
+const slugTitle = slug
+  .split("-")
+  .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+  .join(" ");
+
+const pageTitle = page.seo.title || page.title || slugTitle;
+---
+
+<Layout
+  title={pageTitle}
+  description={page.seo.description}
+  seoImageUrl={page.seo.image_url}
+  noIndex={page.seo.no_index}
+  canonicalOverride={page.seo.canonical}
+>
+  <BlockRenderer blocks={page.blocks} />
+</Layout>

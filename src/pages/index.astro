@@ -1,0 +1,17 @@
+---
+import BlockRenderer from "../components/BlockRenderer.astro";
+import Layout from "../layouts/Layout.astro";
+import { getHomepage } from "../lib/fetch-tea";
+
+const homepage = getHomepage();
+---
+
+<Layout
+  title={null}
+  description={homepage.seo.description}
+  seoImageUrl={homepage.seo.image_url}
+  noIndex={homepage.seo.no_index}
+  canonicalOverride={homepage.seo.canonical}
+>
+  <BlockRenderer blocks={homepage.blocks} />
+</Layout>

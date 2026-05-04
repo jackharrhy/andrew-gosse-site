@@ -1,0 +1,41 @@
+{
+  "name": "andrew-gosse-site",
+  "type": "module",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "ncu": "npm-check-updates",
+    "tea:seed-users": "tsx scripts/tea-seed-users.ts",
+    "tea:migrate-from-strapi": "tsx scripts/migrate-from-strapi-to-teacms.ts"
+  },
+  "dependencies": {
+    "@astrojs/node": "^10.0.4",
+    "@astrojs/react": "^5.0.3",
+    "@blocknote/core": "^0.49.0",
+    "@blocknote/mantine": "^0.49.0",
+    "@blocknote/react": "^0.49.0",
+    "@blocknote/shadcn": "^0.49.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/better-sqlite3": "^7.6.13",
+    "astro": "^6.1.5",
+    "astro-meta-tags": "^0.4.1",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.8.0",
+    "marked": "^18.0.3",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.14.2",
+    "tailwindcss": "^4.2.2",
+    "ulid": "^3.0.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.19",
+    "@types/bcryptjs": "^2.4.6",
+    "npm-check-updates": "^20.0.1",
+    "tsx": "^4.21.0"
+  }
+}

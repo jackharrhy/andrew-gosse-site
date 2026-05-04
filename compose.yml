@@ -1,20 +1,13 @@
+# compose.yml
 services:
-  strapi:
-    build: ./strapi
-    ports:
-      - "127.0.0.1:1338:1337"
-    env_file:
-      - ./strapi/.env
-    environment:
-      - DATABASE_FILENAME=./data/data.db
-    volumes:
-      - ./strapi_data:/opt/app/data
-      - ./strapi/public/uploads:/opt/app/public/uploads
-
   site:
-    build: ./astro-site
+    build: .
     ports:
       - "127.0.0.1:4322:4321"
     environment:
-      - STRAPI_URL=http://strapi:1337
-      - EXTERNAL_STRAPI_URL=http://localhost:1338
+      - TEA_ADMIN_EMAIL_1=${TEA_ADMIN_EMAIL_1:-}
+      - TEA_ADMIN_PASSWORD_1=${TEA_ADMIN_PASSWORD_1:-}
+      - TEA_ADMIN_EMAIL_2=${TEA_ADMIN_EMAIL_2:-}
+      - TEA_ADMIN_PASSWORD_2=${TEA_ADMIN_PASSWORD_2:-}
+    volumes:
+      - ./tea_data:/app/data
