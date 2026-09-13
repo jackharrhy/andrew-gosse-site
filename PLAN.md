@@ -2,10 +2,11 @@
 
 ## Implementation status — 2026-09-13
 
-The rewrite now occupies the primary checkout on `remix3-tea` at
-`/home/jack/repos/personal/andrew-gosse-site`. The separate Remix worktree is
-retired. The earlier code remains on `tea-cms`, with its local files preserved
-in a sibling `andrew-gosse-pre-remix-20260913-*` backup. The configured Remix preview is
+The rewrite was merged through PR #18 and is live on Mug at
+`https://andrewgossecomposer.com`. The primary checkout at
+`/home/jack/repos/personal/andrew-gosse-site` now tracks `main`. The separate
+worktree and temporary checkout backup were removed. Earlier code remains in
+Git history and on `tea-cms`. The configured local Remix preview is
 `https://newport.hedgehog-python.ts.net:8450/`, with the CMS at `/tea/admin`.
 
 - Full pinned Remix 3 runtime, native UI editor, SQL migrations, authentication,
@@ -18,9 +19,10 @@ in a sibling `andrew-gosse-pre-remix-20260913-*` backup. The configured Remix pr
   TipTap for rich text. Existing block JSON and unknown properties are retained.
   Page edits save as private drafts; publishing is a separate action.
 - `andrewgossecomposer.com` matches the existing Mug router and is the canonical
-  default. Production routing has not changed.
-- Production deployment remains separately approved. Follow
-  [the rollout plan](docs/remix3-rollout.md), not the historical setup below.
+  default. The hostname now routes to Remix; DNS is unchanged.
+- The owner-approved production cutover is recorded in
+  [the production notes](docs/production-cutover.md). Future production changes
+  still require explicit authorization; follow [the rollout plan](docs/remix3-rollout.md).
 
 The remaining sections record the original specification and reference setup.
 See [README.md](README.md) for current commands, layout, and verification.

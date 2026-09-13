@@ -1,6 +1,8 @@
 # Remix 3 rollout and rollback
 
-Status: local rewrite verified; production changes require owner approval.
+Status: initial cutover completed on 2026-09-13. See
+[the production record](production-cutover.md). The procedure below remains a
+reference for rollback and future changes, which require owner approval.
 
 ## Evidence and intended deployment
 

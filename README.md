@@ -7,10 +7,9 @@ There is no Astro, React, React Router, or BlockNote runtime dependency.
 ## Local workspace
 
 Use Node **24.3 or newer**. The primary checkout is
-`/home/jack/repos/personal/andrew-gosse-site` on `remix3-tea`, tracking
-`origin/remix3-tea`. The separate Remix worktree has been retired.
-The earlier implementation remains on `tea-cms`; its local fixture and build
-files were preserved in a sibling `andrew-gosse-pre-remix-20260913-*` backup.
+`/home/jack/repos/personal/andrew-gosse-site` on `main`, tracking `origin/main`.
+The separate Remix worktree and temporary pre-Remix checkout backup have been
+removed. The earlier implementation remains in Git history and on `tea-cms`.
 
 ```sh
 npm ci
@@ -131,6 +130,9 @@ backups, local configuration, and Git metadata are excluded from the image.
 The container listens on `0.0.0.0` **inside its network namespace**; publish local
 test ports only on loopback, or use the private reverse-proxy network in production.
 
-Production remains the legacy Astro + Strapi service on Mug. No production
-deployment or hostname change is part of this checkout. See
-[the rollout and rollback plan](docs/remix3-rollout.md) before deploying.
+Production runs Remix TeaCMS on Mug at <https://andrewgossecomposer.com>.
+The CMS is <https://andrewgossecomposer.com/tea/admin>; existing active Strapi
+super-admin logins were preserved during the 2026-09-13 cutover.
+Deployment uses `~/infra/hosts/mug/compose.yml`, pinned to an image digest.
+See [the production cutover record](docs/production-cutover.md) and
+[the rollout and rollback plan](docs/remix3-rollout.md) before deploying changes.

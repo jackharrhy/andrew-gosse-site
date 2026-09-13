@@ -38,7 +38,8 @@ Refer to ./.agents/skills/remix/SKILL.md
 
 ## Build-Out Notes
 
-- The primary checkout is `/home/jack/repos/personal/andrew-gosse-site` on `remix3-tea`. The separate Remix worktree has been retired. The earlier implementation remains on `tea-cms`, with its local files in a sibling `andrew-gosse-pre-remix-20260913-*` backup. Do not write to that backup or production.
+- The primary checkout is `/home/jack/repos/personal/andrew-gosse-site` on `main`. The separate Remix worktree and temporary checkout backup were removed. The earlier implementation remains in Git history and on `tea-cms`.
+- Remix TeaCMS is live on Mug at `https://andrewgossecomposer.com`. Production data is separate from this checkout's ignored local fixture. Do not deploy or write to production without an explicit user request. See `docs/production-cutover.md` for service, data and backup locations.
 - Runtime data lives in ignored `data/` (override with `TEA_DATA_DIR`); migrations live in `db/migrations/`.
 - Use `npm run build`, `npm test`, and `npm run test:browser` for verification. Browser tests create an independent temporary copy of the fixture.
 - Local servers bind to loopback. Only scoped Tailscale Serve routes may expose previews.
