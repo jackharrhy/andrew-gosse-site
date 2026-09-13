@@ -4,9 +4,33 @@ import { assets } from "../assets.ts";
 import { contentContext } from "../middleware/context.ts";
 import { PublicPage } from "./public-page.tsx";
 import { serveMedia } from "./media.ts";
+import { sitemapXml } from "./public-seo.ts";
 
 export default createController(routes, {
   actions: {
+    sitemap(c) {
+      const store = c.get(contentContext);
+      return new Response(
+        sitemapXml([store.homepage(), ...store.pages()], store.site()),
+        {
+          headers: {
+            "Content-Type": "application/xml; charset=utf-8",
+            "Cache-Control": "no-cache",
+          },
+        },
+      );
+    },
+    robots(c) {
+      const site = c.get(contentContext).site();
+      const sitemap = new URL(routes.sitemap.href(), site.canonical_origin)
+        .href;
+      return new Response(`User-agent: *\nAllow: /\n\nSitemap: ${sitemap}\n`, {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-cache",
+        },
+      });
+    },
     async assets(c) {
       return (
         (await assets.fetch(c.request)) ??

@@ -29,6 +29,28 @@ Set `GOOGLE_ANALYTICS_ID` to a GA4 measurement ID to enable Google's standard
 tag on public pages. Leave it unset for development and staging. The CMS,
 login screen and draft previews never include the tag.
 
+## Search engines
+
+`/sitemap.xml` is generated from published pages and the homepage. It excludes
+draft-only pages, pages hidden from search, and pages whose canonical URL points
+elsewhere. `/robots.txt` advertises the sitemap. Crawling remains allowed so
+crawlers can read the existing noindex directives on previews and CMS responses;
+robots.txt is not an access-control mechanism.
+
+Public, indexable pages include JSON-LD `WebSite` and `WebPage` data using the
+existing site name, canonical origin, page/search title, description and sharing
+image. Page metadata falls back to site settings; blank descriptions and missing
+images are omitted from JSON-LD. Page edits take effect on Publish, and site
+settings take effect on Save. No extra SEO fields or manual sitemap updates are
+needed. Homepage search-title overrides are honored too.
+
+We do not infer people, credits, dates, events, or individual musical works from
+freeform blocks. Those would need explicit editorial fields. Sitemap `lastmod`
+is omitted: imported timestamps and page-row update times do not reliably track
+all changes to the rendered page, including shared navigation and adornments.
+The sitemap can also be submitted in Google Search Console; serving it does not
+submit it to an account or guarantee indexing or rich results.
+
 For a new installation, run `npm run tea:seed-users` with `TEA_ADMIN_EMAIL` and
 `TEA_ADMIN_PASSWORD` in ignored configuration. The command refuses to overwrite
 an existing account. Public startup does not create accounts or reset credentials.

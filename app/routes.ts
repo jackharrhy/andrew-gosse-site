@@ -4,6 +4,8 @@ export const routes = route({
   assets: get("/assets/*path"),
   home: get("/"),
   health: get("/healthz"),
+  sitemap: get("/sitemap.xml"),
+  robots: get("/robots.txt"),
   page: get("/*slug"),
   file: get("/tea/api/media/file/:id"),
   auth: route("/tea", {

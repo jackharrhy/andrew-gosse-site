@@ -3,6 +3,7 @@ import type { ContentStore } from "../data/content.ts";
 import type { Page } from "../ui/public/content-types.ts";
 import { Document } from "../ui/document.tsx";
 import { renderBlocks, mediaUrl } from "./block-renderer.ts";
+import { pageMetadata, structuredData } from "./public-seo.ts";
 
 export function PublicPage(
   handle: Handle<{
@@ -16,15 +17,8 @@ export function PublicPage(
     const { page, store, path, preview } = handle.props,
       site = store.site(),
       sidebar = store.sidebar();
-    const title = page?.slug
-      ? (page.seo.title || page.title) + " | " + site.site_name
-      : site.site_name;
-    const canonical =
-      page?.seo.canonical || new URL(path, site.canonical_origin).href;
-    const description = page?.seo.description || site.description;
-    const image = page?.seo.image_id
-      ? new URL(mediaUrl(page.seo.image_id), site.canonical_origin).href
-      : null;
+    const metadata = pageMetadata(page, site, path);
+    const { title, canonical, description, image } = metadata;
     const analyticsId = !preview
       ? process.env.GOOGLE_ANALYTICS_ID?.match(/^G-[A-Z0-9]+$/)?.[0]
       : undefined;
@@ -35,6 +29,12 @@ export function PublicPage(
         static={preview}
         head={
           <>
+            {page && !preview && !page.seo.no_index && (
+              <script
+                type="application/ld+json"
+                innerHTML={structuredData(metadata, site)}
+              ></script>
+            )}
             {analyticsId && (
               <>
                 <script
