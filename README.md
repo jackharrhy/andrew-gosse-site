@@ -53,6 +53,14 @@ images are omitted from JSON-LD. Page edits take effect on Publish, and site
 settings take effect on Save. No extra SEO fields or manual sitemap updates are
 needed. Homepage search-title overrides are honored too.
 
+`/tea/admin/seo` is the editor's search and sharing checklist, including the
+homepage and draft-only pages. It uses the public metadata resolver, flags missing
+descriptions/images and site-description fallbacks, and compares saved drafts
+with live metadata. Missing-details counts use the live version until publication
+(or the draft for a page that has never been published). Edit links open the
+page's Search & sharing fields. This is an editorial checklist, not an indexing
+report or ranking score.
+
 We do not infer people, credits, dates, events, or individual musical works from
 freeform blocks. Those would need explicit editorial fields. Sitemap `lastmod`
 is omitted: imported timestamps and page-row update times do not reliably track

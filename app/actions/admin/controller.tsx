@@ -23,7 +23,10 @@ import { MediaLibrary } from "./public/media-library.tsx";
 import { NavigationEditor } from "./public/navigation-editor.tsx";
 import { AdornmentLibrary } from "./public/adornment-library.tsx";
 import { SiteSettings } from "./public/site-settings.tsx";
-import { SearchAppearance } from "./search-appearance.tsx";
+import {
+  SearchAppearance,
+  searchAppearanceRows,
+} from "./search-appearance.tsx";
 import type { ContentStore } from "../../data/content.ts";
 import type { ContentBlock } from "../../ui/public/content-types.ts";
 
@@ -40,6 +43,7 @@ function editor(context: AppContext, slug: string) {
     >
       <Editor
         page={page}
+        searchOpen={context.url.searchParams.get("section") === "seo"}
         media={store.media()}
         adornments={store.adornments()}
       />
@@ -282,8 +286,9 @@ export default createController(routes.admin, {
       return c.render(
         <AdminLayout title="Search appearance" path="/tea/admin/seo">
           <SearchAppearance
-            pages={store.pages()}
-            origin={store.site().canonical_origin}
+            rows={searchAppearanceRows(store)}
+            site={store.site()}
+            filter={c.url.searchParams.get("filter") ?? "all"}
           />
         </AdminLayout>,
       );

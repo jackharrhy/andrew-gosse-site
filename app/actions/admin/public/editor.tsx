@@ -13,7 +13,12 @@ import { MediaPicker } from "./media-picker.tsx";
 export const Editor = clientEntry(
   import.meta.url,
   function Editor(
-    handle: Handle<{ page: Page; media: Media[]; adornments: Adornment[] }>,
+    handle: Handle<{
+      page: Page;
+      media: Media[];
+      adornments: Adornment[];
+      searchOpen?: boolean;
+    }>,
   ) {
     let page = structuredClone(handle.props.page),
       status = page.hasDraft ? "Draft saved" : "Published",
@@ -395,7 +400,11 @@ export const Editor = clientEntry(
                   previewLayout={previewLayout}
                   change={changed}
                 />
-                <details className="seo-panel panel">
+                <details
+                  className="seo-panel panel"
+                  id="search-sharing"
+                  open={handle.props.searchOpen}
+                >
                   <summary>Search & sharing</summary>
                   <div className="field-grid">
                     <label>
