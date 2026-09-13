@@ -31,6 +31,12 @@ login screen and draft previews never include the tag.
 
 ## Search engines
 
+Published page URLs with trailing slashes permanently redirect to their slashless
+URLs, preserving query strings (including previews). Unknown and draft-only URLs
+still return 404. This normalization is limited to public page GET requests;
+CMS actions and media URLs are unchanged. Production's proxy redirects the `www`
+hostname to `https://andrewgossecomposer.com`, preserving paths and queries.
+
 `/sitemap.xml` is generated from published pages and the homepage. It excludes
 draft-only pages, pages hidden from search, and pages whose canonical URL points
 elsewhere. `/robots.txt` advertises the sitemap. Crawling remains allowed so

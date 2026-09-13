@@ -1,4 +1,5 @@
 import { createController } from "remix/router";
+import { redirect } from "remix/response/redirect";
 import { routes } from "../routes.ts";
 import { assets } from "../assets.ts";
 import { contentContext } from "../middleware/context.ts";
@@ -50,7 +51,10 @@ export default createController(routes, {
     },
     page(c) {
       const store = c.get(contentContext),
-        page = store.page(c.params.slug);
+        slug = c.params.slug.replace(/\/+$/, ""),
+        page = store.page(slug);
+      if (page && slug !== c.params.slug)
+        return redirect(routes.page.href({ slug }) + c.url.search, 301);
       return c.render(
         <PublicPage
           page={page}

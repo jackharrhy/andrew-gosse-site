@@ -7,6 +7,51 @@ import { ContentStore } from "../data/content.ts";
 import { routes } from "../routes.ts";
 import { AuthStore } from "../data/auth.ts";
 
+it("redirects trailing slashes only for published pages, preserving query strings", async () => {
+  const database = await openDatabase(":memory:");
+  try {
+    const store = new ContentStore(database.sqlite);
+    store.createPage("About", "about");
+    store.publishDraft("about", store.editorPage("about")!.revision);
+    store.createPage("Private", "private");
+    const router = createTeaRouter(database);
+    const request = (path: string, init: RequestInit = {}) =>
+      router.fetch(new Request("http://localhost" + path, init));
+    const canonical = routes.page.href({ slug: "about" });
+    const query =
+      "?preview&utm_source=a%2Fb&tag=one&tag=two&next=https%3A%2F%2Felsewhere.test";
+    for (const suffix of ["/", "///"]) {
+      const response = await request(canonical + suffix + query);
+      assert.equal(response.status, 301);
+      assert.equal(response.headers.get("location"), canonical + query);
+      const destination = await request(response.headers.get("location")!);
+      assert.equal(destination.status, 200);
+      assert.match(await destination.text(), /content="noindex, nofollow"/);
+    }
+    assert.equal((await request(canonical)).status, 200);
+    assert.equal((await request(routes.home.href())).status, 200);
+    for (const path of [
+      "/missing/",
+      "/private/",
+      "/tea/login/",
+      "/tea/admin/pages/about/",
+      "/healthz/",
+    ]) {
+      const response = await request(path);
+      assert.equal(response.status, 404);
+      assert.equal(response.headers.get("location"), null);
+    }
+    const post = await request(canonical + "/", {
+      method: "POST",
+      headers: { Origin: "http://localhost" },
+    });
+    assert.equal(post.status, 404);
+    assert.equal(post.headers.get("location"), null);
+  } finally {
+    database.sqlite.close();
+  }
+});
+
 it("lists only published, indexable, self-canonical pages and advertises the sitemap", async () => {
   const database = await openDatabase(":memory:");
   try {
