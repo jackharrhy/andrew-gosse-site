@@ -5,6 +5,74 @@ import { openDatabase } from "../data/database.ts";
 import { createTeaRouter } from "../router.ts";
 import { ContentStore } from "../data/content.ts";
 import { routes } from "../routes.ts";
+import { AuthStore } from "../data/auth.ts";
+
+it("includes configured analytics once on public pages, never in the CMS or previews", async () => {
+  const previous = process.env.GOOGLE_ANALYTICS_ID;
+  const database = await openDatabase(":memory:");
+  try {
+    process.env.GOOGLE_ANALYTICS_ID = "G-YKGRMT757F";
+    const store = new ContentStore(database.sqlite);
+    store.createPage("Gallery", "gallery");
+    store.publishDraft("gallery", store.editorPage("gallery")!.revision);
+    const user = database.sqlite
+      .prepare("INSERT INTO users (email,password_hash) VALUES (?,?)")
+      .run("analytics-test@example.test", "unused-test-hash");
+    const session = new AuthStore(database.sqlite).createSession(
+      Number(user.lastInsertRowid),
+    );
+    const router = createTeaRouter(database);
+    const request = (path: string, init: RequestInit = {}) =>
+      router.fetch(new Request("http://localhost" + path, init));
+    for (const path of ["/", "/gallery"]) {
+      const html = await (await request(path)).text();
+      assert.equal(
+        (html.match(/googletagmanager\.com\/gtag\/js/g) ?? []).length,
+        1,
+      );
+      assert.match(html, /gtag\('config', "G-YKGRMT757F"\)/);
+      assert.match(html, /rel="canonical"/);
+    }
+    for (const path of [
+      "/?preview",
+      "/gallery?preview",
+      routes.auth.login.href(),
+      routes.admin.edit.href({ slug: "gallery" }),
+    ]) {
+      const response = await request(path, {
+        headers: path.startsWith("/tea/admin")
+          ? { Cookie: `tea-session=${session.id}` }
+          : {},
+      });
+      assert.equal(response.status, 200);
+      const html = await response.text();
+      assert.equal(html.includes("googletagmanager.com"), false);
+    }
+    const preview = await request(routes.admin.preview.href(), {
+      method: "POST",
+      headers: {
+        Origin: "http://localhost",
+        Cookie: `tea-session=${session.id}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(store.editorPage("gallery")),
+    });
+    assert.equal(preview.status, 200);
+    assert.equal(
+      (await preview.text()).includes("googletagmanager.com"),
+      false,
+    );
+    delete process.env.GOOGLE_ANALYTICS_ID;
+    assert.equal(
+      (await (await request("/")).text()).includes("googletagmanager.com"),
+      false,
+    );
+  } finally {
+    if (previous === undefined) delete process.env.GOOGLE_ANALYTICS_ID;
+    else process.env.GOOGLE_ANALYTICS_ID = previous;
+    database.sqlite.close();
+  }
+});
 
 it("serves public content and protects editor reads, writes and login", async () => {
   const database = await openDatabase(":memory:");

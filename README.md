@@ -25,6 +25,10 @@ Copy `.env.example` to `.env` when configuring another machine. Set `APP_ORIGIN`
 to the exact HTTPS preview or production origin. Cookie security and write-origin
 checks use that value. Keep it unset for plain loopback HTTP development.
 
+Set `GOOGLE_ANALYTICS_ID` to a GA4 measurement ID to enable Google's standard
+tag on public pages. Leave it unset for development and staging. The CMS,
+login screen and draft previews never include the tag.
+
 For a new installation, run `npm run tea:seed-users` with `TEA_ADMIN_EMAIL` and
 `TEA_ADMIN_PASSWORD` in ignored configuration. The command refuses to overwrite
 an existing account. Public startup does not create accounts or reset credentials.

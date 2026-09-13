@@ -25,6 +25,9 @@ export function PublicPage(
     const image = page?.seo.image_id
       ? new URL(mediaUrl(page.seo.image_id), site.canonical_origin).href
       : null;
+    const analyticsId = !preview
+      ? process.env.GOOGLE_ANALYTICS_ID?.match(/^G-[A-Z0-9]+$/)?.[0]
+      : undefined;
     return (
       <Document
         title={page ? title : "Page not found | " + site.site_name}
@@ -32,6 +35,20 @@ export function PublicPage(
         static={preview}
         head={
           <>
+            {analyticsId && (
+              <>
+                <script
+                  async
+                  src={`https://www.googletagmanager.com/gtag/js?id=${analyticsId}`}
+                ></script>
+                <script
+                  innerHTML={`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', ${JSON.stringify(analyticsId)});`}
+                ></script>
+              </>
+            )}
             <link rel="canonical" href={canonical} />
             <meta name="description" content={description} />
             {(preview || page?.seo.no_index || !page) && (
