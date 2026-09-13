@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { openDatabase } from "../data/database.ts";
 import { ContentStore } from "../data/content.ts";
+import { createTeaRouter } from "../router.ts";
 it("confines stored media paths to the upload directory", () => {
   assert.equal(
     safeUploadPath("/tmp/uploads", "image.png"),
@@ -47,6 +48,23 @@ it("streams typed media and ranges while rejecting missing files and symlinks", 
     assert.equal(full.headers.get("Content-Type"), "image/png");
     assert.equal(full.headers.get("X-Content-Type-Options"), "nosniff");
     assert.equal(await full.text(), "0123456789");
+    const router = createTeaRouter(database);
+    const head = await router.fetch(
+      new Request(request, { method: "HEAD", headers: { Range: "bytes=2-5" } }),
+    );
+    assert.equal(head.status, 200);
+    assert.equal(head.headers.get("content-length"), "10");
+    assert.equal(head.headers.get("content-range"), null);
+    assert.equal(head.headers.get("content-type"), "image/png");
+    assert.equal(head.body, null);
+    const unchanged = await router.fetch(
+      new Request(request, {
+        method: "HEAD",
+        headers: { "If-None-Match": head.headers.get("etag")! },
+      }),
+    );
+    assert.equal(unchanged.status, 304);
+    assert.equal(unchanged.body, null);
     const partial = await serveMedia(
       new Request(request, { headers: { Range: "bytes=2-5" } }),
       "present",

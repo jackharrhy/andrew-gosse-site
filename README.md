@@ -33,8 +33,11 @@ login screen and draft previews never include the tag.
 
 Published page URLs with trailing slashes permanently redirect to their slashless
 URLs, preserving query strings (including previews). Unknown and draft-only URLs
-still return 404. This normalization is limited to public page GET requests;
-CMS actions and media URLs are unchanged. Production's proxy redirects the `www`
+still return 404. This normalization is limited to public page GET/HEAD requests;
+CMS actions and media URLs are unchanged. HEAD requests use the same routes and
+access checks as GET, with response bodies discarded. File handlers retain the
+original HEAD method for conditional requests and to avoid streaming file bytes.
+Production's proxy redirects the `www`
 hostname to `https://andrewgossecomposer.com`, preserving paths and queries.
 
 `/sitemap.xml` is generated from published pages and the homepage. It excludes

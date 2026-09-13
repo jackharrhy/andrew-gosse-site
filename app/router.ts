@@ -7,6 +7,7 @@ import { routes } from "./routes.ts";
 import { ContentStore } from "./data/content.ts";
 import { AuthStore } from "./data/auth.ts";
 import { services, protectWrites } from "./middleware/context.ts";
+import { headRequests } from "./middleware/head.ts";
 import type { TeaDatabase } from "./data/database.ts";
 import controller from "./actions/controller.tsx";
 import authController from "./actions/auth/controller.tsx";
@@ -26,6 +27,7 @@ export function createTeaRouter(database: TeaDatabase) {
     auth = new AuthStore(database.sqlite);
   const router = createRouter<AppContext>({
     middleware: [
+      headRequests,
       protectWrites,
       staticFiles("./public", { index: false }),
       cop({

@@ -25,7 +25,7 @@ export function services(
 }
 export const requireEditor: Middleware = (context, next) => {
   if (!context.get(userContext)) {
-    if (context.request.method !== "GET")
+    if (context.method !== "GET")
       return Response.json(
         {
           error:
