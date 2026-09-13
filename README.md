@@ -165,6 +165,10 @@ test ports only on loopback, or use the private reverse-proxy network in product
 Production runs Remix TeaCMS on Mug at <https://andrewgossecomposer.com>.
 The CMS is <https://andrewgossecomposer.com/tea/admin>; existing active Strapi
 super-admin logins were preserved during the 2026-09-13 cutover.
-Deployment uses `~/infra/hosts/mug/compose.yml`, pinned to an image digest.
+Deployment uses `~/infra/hosts/mug/compose.yml` with the `:latest` image tag.
+Main-branch builds publish both `:main` and `:latest`. After CI passes, deploy
+with `docker compose pull andrewsite_remix` and
+`docker compose up -d --no-deps --wait andrewsite_remix` from `~/infra/hosts/mug`.
+Watchtower remains disabled for this site; publishing an image does not restart it.
 See [the production cutover record](docs/production-cutover.md) and
 [the rollout and rollback plan](docs/remix3-rollout.md) before deploying changes.

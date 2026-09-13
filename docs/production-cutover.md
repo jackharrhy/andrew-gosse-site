@@ -49,10 +49,15 @@ Keep the independent cutover copy; arrange recurring off-host replication separa
 
 ## Release procedure
 
-Main-branch CI publishes an image but does not switch production: infra pins the
-digest. Wait for application checks and image publication, update only the site's
-infra image, commit/push, then pull infra on Mug and recreate the site service.
-Use service-scoped Compose commands when unrelated updates are not intended.
+Production now follows the `:latest` image tag, as requested after the initial
+cutover. Main-branch CI publishes both `:main` and `:latest`, but Watchtower remains
+disabled for this site. Wait for application checks and image publication, then
+run `docker compose pull andrewsite_remix` followed by
+`docker compose up -d --no-deps --wait andrewsite_remix` from `~/infra/hosts/mug`.
+No recurring Compose image edit is needed. Record the running digest before each
+release so a routine app rollback can select the previous image without reverting
+to Strapi or changing production data. Use service-scoped commands when unrelated
+updates are not intended.
 
 The final image does not include `scripts/`. Run import/verification tooling from
 the matching source checkout, or mount that revision's scripts read-only into a
