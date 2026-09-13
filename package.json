@@ -1,0 +1,38 @@
+{
+  "name": "teacms",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "NODE_ENV=development node --env-file-if-exists=.env --watch --import remix/node-tsx server.ts",
+    "start": "NODE_ENV=production node --env-file-if-exists=.env --import remix/node-tsx server.ts",
+    "build": "npm run typecheck && NODE_ENV=production node --import remix/node-tsx scripts/check-assets.ts",
+    "test": "NODE_ENV=test remix test",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "node --env-file-if-exists=.env --import remix/node-tsx scripts/migrate.ts",
+    "tea:seed-users": "node --env-file-if-exists=.env --import remix/node-tsx scripts/seed-users.ts",
+    "tea:parity": "node --import remix/node-tsx scripts/parity.ts",
+    "test:browser": "playwright test",
+    "tea:import": "node --env-file-if-exists=.env --import remix/node-tsx scripts/migrate-from-strapi-to-teacms.mjs",
+    "tea:verify-import": "node --import remix/node-tsx scripts/verify-import.ts",
+    "tea:verify-preview": "node --env-file-if-exists=.env --import remix/node-tsx scripts/verify-preview.ts"
+  },
+  "engines": {
+    "node": ">=24.3.0"
+  },
+  "dependencies": {
+    "@tiptap/core": "3.31.3",
+    "@tiptap/pm": "3.31.3",
+    "@tiptap/starter-kit": "3.31.3",
+    "bcryptjs": "3.0.3",
+    "marked": "18.0.3",
+    "morphdom": "2.7.8",
+    "remix": "3.0.0-rc.1",
+    "sanitize-html": "2.17.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.0",
+    "@types/node": "^24.0.0",
+    "@types/sanitize-html": "^2.16.0",
+    "typescript": "^5.9.3"
+  }
+}
