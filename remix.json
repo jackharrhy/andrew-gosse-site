@@ -1,0 +1,7 @@
+{
+  "$schema": "./node_modules/remix/schema/remix.json",
+  "test": {
+    "files": ["app/**/*.test.ts", "app/**/*.test.tsx"],
+    "exclude": ["tmp/**", "node_modules/**"]
+  }
+}

@@ -1,11 +1,26 @@
 {
-  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@site/*": ["src/*"]
-    }
+    "strict": true,
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "types": ["node", "remix/assets/types/hmr"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ESNext",
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "remix/ui",
+    "noEmit": true
   },
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "server.ts",
+    "scripts/**/*.ts",
+    "test/**/*.ts",
+    "playwright.config.ts"
+  ]
 }

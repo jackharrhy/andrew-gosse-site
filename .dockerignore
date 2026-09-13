@@ -1,4 +1,13 @@
-.astro
-dist
+.git
+.agents
 node_modules
+data
+tea_data
+tmp
 .env
+.env.*
+test-results
+playwright-report
+docs
+dist
+.astro

@@ -1,41 +1,38 @@
 {
-  "name": "andrew-gosse-site",
-  "type": "module",
+  "name": "teacms",
   "private": true,
-  "version": "0.1.0",
+  "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro",
-    "ncu": "npm-check-updates",
-    "tea:seed-users": "tsx scripts/tea-seed-users.ts",
-    "tea:migrate-from-strapi": "tsx scripts/migrate-from-strapi-to-teacms.ts"
+    "dev": "NODE_ENV=development node --env-file-if-exists=.env --watch --import remix/node-tsx server.ts",
+    "start": "NODE_ENV=production node --env-file-if-exists=.env --import remix/node-tsx server.ts",
+    "build": "npm run typecheck && NODE_ENV=production node --import remix/node-tsx scripts/check-assets.ts",
+    "test": "NODE_ENV=test remix test",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "node --env-file-if-exists=.env --import remix/node-tsx scripts/migrate.ts",
+    "tea:seed-users": "node --env-file-if-exists=.env --import remix/node-tsx scripts/seed-users.ts",
+    "tea:parity": "node --import remix/node-tsx scripts/parity.ts",
+    "test:browser": "playwright test",
+    "tea:import": "node --env-file-if-exists=.env --import remix/node-tsx scripts/migrate-from-strapi-to-teacms.mjs",
+    "tea:verify-import": "node --import remix/node-tsx scripts/verify-import.ts",
+    "tea:verify-preview": "node --env-file-if-exists=.env --import remix/node-tsx scripts/verify-preview.ts"
+  },
+  "engines": {
+    "node": ">=24.3.0"
   },
   "dependencies": {
-    "@astrojs/node": "^10.0.4",
-    "@astrojs/react": "^5.0.3",
-    "@blocknote/core": "^0.49.0",
-    "@blocknote/mantine": "^0.49.0",
-    "@blocknote/react": "^0.49.0",
-    "@blocknote/shadcn": "^0.49.0",
-    "@tailwindcss/vite": "^4.2.2",
-    "@types/better-sqlite3": "^7.6.13",
-    "astro": "^6.1.5",
-    "astro-meta-tags": "^0.4.1",
-    "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.8.0",
-    "marked": "^18.0.3",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "react-router-dom": "^7.14.2",
-    "tailwindcss": "^4.2.2",
-    "ulid": "^3.0.2"
+    "@tiptap/core": "3.31.3",
+    "@tiptap/pm": "3.31.3",
+    "@tiptap/starter-kit": "3.31.3",
+    "bcryptjs": "3.0.3",
+    "marked": "18.0.3",
+    "morphdom": "2.7.8",
+    "remix": "3.0.0-rc.1",
+    "sanitize-html": "2.17.7"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.19",
-    "@types/bcryptjs": "^2.4.6",
-    "npm-check-updates": "^20.0.1",
-    "tsx": "^4.21.0"
+    "@playwright/test": "^1.58.0",
+    "@types/node": "^24.0.0",
+    "@types/sanitize-html": "^2.16.0",
+    "typescript": "^5.9.3"
   }
 }

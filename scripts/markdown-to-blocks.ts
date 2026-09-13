@@ -1,5 +1,5 @@
 // scripts/markdown-to-blocks.ts
-// Converts markdown source (which may contain raw HTML) into TeaCMS BlockNote
+// Converts markdown source (which may contain raw HTML) into TeaCMS compatible
 // blocks. Strategy:
 //   1. Split into top-level tokens via marked.lexer().
 //   2. For each token, emit a native block (heading / paragraph / list / quote
@@ -11,7 +11,7 @@
 //
 // Imported by scripts/migrate-from-strapi-to-teacms.ts.
 import { marked, type Token } from "marked";
-import { ulid } from "ulid";
+import { randomUUID } from "node:crypto";
 
 interface Style {
   bold?: boolean;
@@ -38,7 +38,12 @@ type InlineContent = InlineText | InlineLink;
 export type Block =
   | {
       id: string;
-      type: "paragraph" | "heading" | "bulletListItem" | "numberedListItem" | "quote";
+      type:
+        | "paragraph"
+        | "heading"
+        | "bulletListItem"
+        | "numberedListItem"
+        | "quote";
       props: Record<string, unknown>;
       content: InlineContent[];
       children: Block[];
@@ -59,12 +64,12 @@ export type Block =
     };
 
 function block(b: Omit<Block, "id">): Block {
-  return { id: ulid(), ...b } as Block;
+  return { id: randomUUID(), ...b } as Block;
 }
 
 function tokenContainsHtml(tokens: Token[]): boolean {
   for (const t of tokens) {
-    if (t.type === "html") return true;
+    if (t.type === "html" || t.type === "image") return true;
     if ("tokens" in t && Array.isArray(t.tokens)) {
       if (tokenContainsHtml(t.tokens)) return true;
     }
@@ -83,29 +88,46 @@ function inline(tokens: Token[], parentStyles: Style = {}): InlineContent[] {
         if ("tokens" in t && Array.isArray(t.tokens) && t.tokens.length > 0) {
           out.push(...inline(t.tokens as Token[], parentStyles));
         } else {
-          out.push({ type: "text", text: (t as { text: string }).text, styles: { ...parentStyles } });
+          out.push({
+            type: "text",
+            text: (t as { text: string }).text,
+            styles: { ...parentStyles },
+          });
         }
         break;
       }
       case "escape": {
-        out.push({ type: "text", text: (t as { text: string }).text, styles: { ...parentStyles } });
+        out.push({
+          type: "text",
+          text: (t as { text: string }).text,
+          styles: { ...parentStyles },
+        });
         break;
       }
       case "strong": {
         out.push(
-          ...inline((t as { tokens: Token[] }).tokens, { ...parentStyles, bold: true })
+          ...inline((t as { tokens: Token[] }).tokens, {
+            ...parentStyles,
+            bold: true,
+          }),
         );
         break;
       }
       case "em": {
         out.push(
-          ...inline((t as { tokens: Token[] }).tokens, { ...parentStyles, italic: true })
+          ...inline((t as { tokens: Token[] }).tokens, {
+            ...parentStyles,
+            italic: true,
+          }),
         );
         break;
       }
       case "del": {
         out.push(
-          ...inline((t as { tokens: Token[] }).tokens, { ...parentStyles, strike: true })
+          ...inline((t as { tokens: Token[] }).tokens, {
+            ...parentStyles,
+            strike: true,
+          }),
         );
         break;
       }
@@ -147,7 +169,8 @@ function inline(tokens: Token[], parentStyles: Style = {}): InlineContent[] {
       default: {
         // Unknown inline token — capture its raw text best-effort.
         const raw = "raw" in t ? (t as { raw: string }).raw : "";
-        if (raw) out.push({ type: "text", text: raw, styles: { ...parentStyles } });
+        if (raw)
+          out.push({ type: "text", text: raw, styles: { ...parentStyles } });
       }
     }
   }
@@ -186,7 +209,11 @@ export function markdownToBlocks(source: string): Block[] {
     if (tok.type === "space") continue;
 
     // Inline blocks may contain raw HTML — escape hatch the whole thing
-    if ("tokens" in tok && Array.isArray(tok.tokens) && tokenContainsHtml(tok.tokens as Token[])) {
+    if (
+      "tokens" in tok &&
+      Array.isArray(tok.tokens) &&
+      tokenContainsHtml(tok.tokens as Token[])
+    ) {
       out.push(escapeHatch(tok.raw));
       continue;
     }
@@ -194,14 +221,14 @@ export function markdownToBlocks(source: string): Block[] {
     switch (tok.type) {
       case "heading": {
         const h = tok as { depth: number; tokens: Token[] };
-        const level = Math.min(Math.max(h.depth, 1), 3) as 1 | 2 | 3;
+        const level = Math.min(Math.max(h.depth, 1), 6);
         out.push(
           block({
             type: "heading",
             props: { level },
             content: inline(h.tokens),
             children: [],
-          })
+          }),
         );
         break;
       }
@@ -213,7 +240,7 @@ export function markdownToBlocks(source: string): Block[] {
             props: {},
             content: inline(p.tokens),
             children: [],
-          })
+          }),
         );
         break;
       }
@@ -225,7 +252,8 @@ export function markdownToBlocks(source: string): Block[] {
         const inner: InlineContent[] = [];
         for (const child of q.tokens) {
           if ("tokens" in child && Array.isArray(child.tokens)) {
-            if (inner.length > 0) inner.push({ type: "text", text: "\n", styles: {} });
+            if (inner.length > 0)
+              inner.push({ type: "text", text: "\n", styles: {} });
             inner.push(...inline(child.tokens as Token[]));
           }
         }
@@ -235,7 +263,7 @@ export function markdownToBlocks(source: string): Block[] {
             props: {},
             content: inner,
             children: [],
-          })
+          }),
         );
         break;
       }
@@ -244,17 +272,37 @@ export function markdownToBlocks(source: string): Block[] {
           ordered: boolean;
           items: { tokens: Token[]; raw: string }[];
         };
+        if (
+          list.items.some(
+            (item) =>
+              item.tokens.some(
+                (token) => token.type === "list" || token.type === "blockquote",
+              ) ||
+              item.tokens.filter((token) => token.type !== "space").length > 1,
+          )
+        ) {
+          out.push(escapeHatch(tok.raw));
+          break;
+        }
         const itemType = list.ordered ? "numberedListItem" : "bulletListItem";
         for (const item of list.items) {
           // Each item's first token block is typically a "text" block; flatten
           // its inline tokens if present.
           let itemInline: InlineContent[] = [];
           for (const child of item.tokens) {
-            if (child.type === "text" && "tokens" in child && Array.isArray(child.tokens)) {
+            if (
+              child.type === "text" &&
+              "tokens" in child &&
+              Array.isArray(child.tokens)
+            ) {
               itemInline = inline(child.tokens as Token[]);
               break;
             }
-            if (child.type === "paragraph" && "tokens" in child && Array.isArray(child.tokens)) {
+            if (
+              child.type === "paragraph" &&
+              "tokens" in child &&
+              Array.isArray(child.tokens)
+            ) {
               itemInline = inline(child.tokens as Token[]);
               break;
             }
@@ -270,7 +318,7 @@ export function markdownToBlocks(source: string): Block[] {
               props: {},
               content: itemInline,
               children: [],
-            })
+            }),
           );
         }
         break;
@@ -282,7 +330,7 @@ export function markdownToBlocks(source: string): Block[] {
             props: {},
             content: [],
             children: [],
-          })
+          }),
         );
         break;
       }
@@ -296,7 +344,7 @@ export function markdownToBlocks(source: string): Block[] {
             props: {},
             content: [{ type: "text", text: c.text, styles: { code: true } }],
             children: [],
-          })
+          }),
         );
         break;
       }

@@ -20,7 +20,7 @@ pnpm-debug.log*
 .idea/
 
 # TeaCMS runtime data
-data/
+/data/
 
 # TeaCMS volume data
 tea_data/*.db
@@ -30,3 +30,7 @@ tea_data/uploads/
 
 # misc
 tmp
+.env.*
+!.env.example
+playwright-report/
+test-results/
