@@ -1,15 +1,24 @@
-FROM node:24-bookworm-slim AS deps
+FROM node:24.22.1-bookworm-slim AS deps
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && update-ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM node:24-bookworm-slim AS builder
+FROM node:24.22.1-bookworm-slim AS builder
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && update-ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-FROM node:24-bookworm-slim AS runner
+FROM node:24.22.1-bookworm-slim AS runner
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && update-ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
